@@ -21,25 +21,26 @@ internal sealed class SyntheticAlphaCutoutService : IBackgroundRemovalService
         cancellationToken.ThrowIfCancellationRequested();
         using var source = SKBitmap.Decode(inputPath)
             ?? throw new InvalidDataException($"Unable to decode test frame '{inputPath}'.");
-        using var output = source.Copy(SKColorType.Rgba8888)
-            ?? throw new InvalidOperationException("Unable to create test cutout bitmap.");
 
-        var border = Math.Max(1, Math.Min(output.Width, output.Height) / 8);
-        for (var y = 0; y < output.Height; y++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            for (var x = 0; x < output.Width; x++)
-            {
-                if (x >= border && x < output.Width - border &&
-                    y >= border && y < output.Height - border)
-                {
-                    continue;
-                }
+        var imageInfo = new SKImageInfo(
+            source.Width,
+            source.Height,
+            SKColorType.Rgba8888,
+            SKAlphaType.Premul);
+        using var output = new SKBitmap(imageInfo);
+        using var canvas = new SKCanvas(output);
+        canvas.Clear(SKColors.Transparent);
 
-                var pixel = output.GetPixel(x, y);
-                output.SetPixel(x, y, new SKColor(pixel.Red, pixel.Green, pixel.Blue, 0));
-            }
-        }
+        var border = Math.Max(1, Math.Min(source.Width, source.Height) / 8);
+        var destination = SKRect.Create(
+            border,
+            border,
+            Math.Max(1, source.Width - border * 2),
+            Math.Max(1, source.Height - border * 2));
+        var sampling = new SKSamplingOptions(SKFilterMode.Nearest);
+        canvas.DrawBitmap(source, destination, sampling);
+        canvas.Flush();
+        cancellationToken.ThrowIfCancellationRequested();
 
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPath))!);
         using var image = SKImage.FromBitmap(output);
