@@ -1,0 +1,36 @@
+<UserControl
+    x:Class="SpriteForge.App.Views.Stages.SourceStageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SpriteForge.App.Controls">
+    <Grid ColumnSpacing="12" Padding="14">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="300" />
+        </Grid.ColumnDefinitions>
+        <Border Style="{StaticResource CardBorderStyle}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AllowDrop="True" DragOver="OnSourceDragOver" Drop="OnSourceDrop">
+            <Grid>
+                <controls:CheckerboardControl ImagePath="{Binding PreviewImagePath}" Zoom="{Binding PreviewZoom}" />
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Spacing="8" Margin="24">
+                    <TextBlock Text="Drop an image, video, or frame sequence here" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                    <TextBlock Text="PNG · JPG · WebP · MP4 · WebM · MOV" Opacity="0.64" HorizontalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                        <Button Content="Choose image or video" Click="OnChooseSourceClick" Style="{StaticResource AccentButtonStyle}" />
+                        <Button Content="Import frame sequence" Click="OnImportSequenceClick" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
+            <StackPanel Spacing="12">
+                <TextBlock Text="SOURCE" Style="{StaticResource InspectorTitleStyle}" />
+                <TextBlock Text="Selected asset" Style="{StaticResource SectionTitleStyle}" />
+                <TextBlock Text="Type" Opacity="0.62" />
+                <TextBlock Text="{Binding SourceKind}" />
+                <TextBlock Text="Source" Opacity="0.62" />
+                <TextBlock Text="{Binding SourceSummary}" TextWrapping="Wrap" />
+                <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Non-destructive import" Message="SpriteForge copies imported assets into the project workspace and never edits the original file." />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

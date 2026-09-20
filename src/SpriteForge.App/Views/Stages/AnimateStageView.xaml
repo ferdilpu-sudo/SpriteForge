@@ -1,0 +1,23 @@
+<UserControl
+    x:Class="SpriteForge.App.Views.Stages.AnimateStageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SpriteForge.App.Controls">
+    <Grid ColumnSpacing="12" Padding="14">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
+        <controls:CheckerboardControl ImagePath="{Binding PreviewImagePath}" Zoom="{Binding PreviewZoom}" />
+        <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
+            <StackPanel Spacing="12">
+                <TextBlock Text="ANIMATE" Style="{StaticResource InspectorTitleStyle}" />
+                <TextBlock Text="Image-to-video" Style="{StaticResource SectionTitleStyle}" />
+                <TextBlock Text="Animation prompt" />
+                <TextBox Text="Gentle looping motion. Locked camera. No zoom." AcceptsReturn="True" TextWrapping="Wrap" MinHeight="110" />
+                <TextBlock Text="Provider" />
+                <ComboBox SelectedIndex="0"><ComboBoxItem Content="No provider configured" /></ComboBox>
+                <Button Content="Generate animation" Style="{StaticResource AccentButtonStyle}" IsEnabled="False" />
+                <Button Content="Import video instead" Click="OnImportVideoClick" />
+                <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Optional stage" Message="Provider generation is intentionally replaceable. Local video import remains first-class in V1." />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

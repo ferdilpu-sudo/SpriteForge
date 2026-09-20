@@ -1,0 +1,90 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.0.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Core", "src\SpriteForge.Core\SpriteForge.Core.csproj", "{C4914E93-10FC-581B-BC55-C274B2AC642B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Application", "src\SpriteForge.Application\SpriteForge.Application.csproj", "{4981CF69-1562-5D99-868A-39E034A88E99}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Infrastructure", "src\SpriteForge.Infrastructure\SpriteForge.Infrastructure.csproj", "{54F846C7-40EB-50DF-80DD-BBBC75E8C453}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Media", "src\SpriteForge.Media\SpriteForge.Media.csproj", "{42BB4F55-ED65-5B76-A079-D65A03149078}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Providers", "src\SpriteForge.Providers\SpriteForge.Providers.csproj", "{5EF27AA7-91EF-59BF-AA34-6136464A64A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Export", "src\SpriteForge.Export\SpriteForge.Export.csproj", "{136F4B61-834C-5261-8ACC-45D7606BBAB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Diagnostics", "src\SpriteForge.Diagnostics\SpriteForge.Diagnostics.csproj", "{7CDD80E7-53E6-54A9-95CC-4DC0E738CF6D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Presentation", "src\SpriteForge.Presentation\SpriteForge.Presentation.csproj", "{5F0902A6-DDCE-5983-9D43-18A5901CAF61}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.App", "src\SpriteForge.App\SpriteForge.App.csproj", "{118D07EE-A207-5E6F-84CA-638D5DD0DED7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Core.Tests", "tests\SpriteForge.Core.Tests\SpriteForge.Core.Tests.csproj", "{1078830D-A006-5915-8E63-A3BEAB16CF38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Application.Tests", "tests\SpriteForge.Application.Tests\SpriteForge.Application.Tests.csproj", "{EBF5656F-DA98-594D-947A-0C20F8D6D301}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Infrastructure.Tests", "tests\SpriteForge.Infrastructure.Tests\SpriteForge.Infrastructure.Tests.csproj", "{EBBFAA95-05FB-5BE3-A1EF-FFC258F30BAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Architecture.Tests", "tests\SpriteForge.Architecture.Tests\SpriteForge.Architecture.Tests.csproj", "{1C33A78F-AEE5-5F83-835E-93A55E81879F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C4914E93-10FC-581B-BC55-C274B2AC642B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C4914E93-10FC-581B-BC55-C274B2AC642B}.Debug|x64.Build.0 = Debug|Any CPU
+		{C4914E93-10FC-581B-BC55-C274B2AC642B}.Release|x64.ActiveCfg = Release|Any CPU
+		{C4914E93-10FC-581B-BC55-C274B2AC642B}.Release|x64.Build.0 = Release|Any CPU
+		{4981CF69-1562-5D99-868A-39E034A88E99}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4981CF69-1562-5D99-868A-39E034A88E99}.Debug|x64.Build.0 = Debug|Any CPU
+		{4981CF69-1562-5D99-868A-39E034A88E99}.Release|x64.ActiveCfg = Release|Any CPU
+		{4981CF69-1562-5D99-868A-39E034A88E99}.Release|x64.Build.0 = Release|Any CPU
+		{54F846C7-40EB-50DF-80DD-BBBC75E8C453}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{54F846C7-40EB-50DF-80DD-BBBC75E8C453}.Debug|x64.Build.0 = Debug|Any CPU
+		{54F846C7-40EB-50DF-80DD-BBBC75E8C453}.Release|x64.ActiveCfg = Release|Any CPU
+		{54F846C7-40EB-50DF-80DD-BBBC75E8C453}.Release|x64.Build.0 = Release|Any CPU
+		{42BB4F55-ED65-5B76-A079-D65A03149078}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{42BB4F55-ED65-5B76-A079-D65A03149078}.Debug|x64.Build.0 = Debug|Any CPU
+		{42BB4F55-ED65-5B76-A079-D65A03149078}.Release|x64.ActiveCfg = Release|Any CPU
+		{42BB4F55-ED65-5B76-A079-D65A03149078}.Release|x64.Build.0 = Release|Any CPU
+		{5EF27AA7-91EF-59BF-AA34-6136464A64A6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5EF27AA7-91EF-59BF-AA34-6136464A64A6}.Debug|x64.Build.0 = Debug|Any CPU
+		{5EF27AA7-91EF-59BF-AA34-6136464A64A6}.Release|x64.ActiveCfg = Release|Any CPU
+		{5EF27AA7-91EF-59BF-AA34-6136464A64A6}.Release|x64.Build.0 = Release|Any CPU
+		{136F4B61-834C-5261-8ACC-45D7606BBAB8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{136F4B61-834C-5261-8ACC-45D7606BBAB8}.Debug|x64.Build.0 = Debug|Any CPU
+		{136F4B61-834C-5261-8ACC-45D7606BBAB8}.Release|x64.ActiveCfg = Release|Any CPU
+		{136F4B61-834C-5261-8ACC-45D7606BBAB8}.Release|x64.Build.0 = Release|Any CPU
+		{7CDD80E7-53E6-54A9-95CC-4DC0E738CF6D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7CDD80E7-53E6-54A9-95CC-4DC0E738CF6D}.Debug|x64.Build.0 = Debug|Any CPU
+		{7CDD80E7-53E6-54A9-95CC-4DC0E738CF6D}.Release|x64.ActiveCfg = Release|Any CPU
+		{7CDD80E7-53E6-54A9-95CC-4DC0E738CF6D}.Release|x64.Build.0 = Release|Any CPU
+		{5F0902A6-DDCE-5983-9D43-18A5901CAF61}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5F0902A6-DDCE-5983-9D43-18A5901CAF61}.Debug|x64.Build.0 = Debug|Any CPU
+		{5F0902A6-DDCE-5983-9D43-18A5901CAF61}.Release|x64.ActiveCfg = Release|Any CPU
+		{5F0902A6-DDCE-5983-9D43-18A5901CAF61}.Release|x64.Build.0 = Release|Any CPU
+		{118D07EE-A207-5E6F-84CA-638D5DD0DED7}.Debug|x64.ActiveCfg = Debug|x64
+		{118D07EE-A207-5E6F-84CA-638D5DD0DED7}.Debug|x64.Build.0 = Debug|x64
+		{118D07EE-A207-5E6F-84CA-638D5DD0DED7}.Release|x64.ActiveCfg = Release|x64
+		{118D07EE-A207-5E6F-84CA-638D5DD0DED7}.Release|x64.Build.0 = Release|x64
+		{1078830D-A006-5915-8E63-A3BEAB16CF38}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1078830D-A006-5915-8E63-A3BEAB16CF38}.Debug|x64.Build.0 = Debug|Any CPU
+		{1078830D-A006-5915-8E63-A3BEAB16CF38}.Release|x64.ActiveCfg = Release|Any CPU
+		{1078830D-A006-5915-8E63-A3BEAB16CF38}.Release|x64.Build.0 = Release|Any CPU
+		{EBF5656F-DA98-594D-947A-0C20F8D6D301}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EBF5656F-DA98-594D-947A-0C20F8D6D301}.Debug|x64.Build.0 = Debug|Any CPU
+		{EBF5656F-DA98-594D-947A-0C20F8D6D301}.Release|x64.ActiveCfg = Release|Any CPU
+		{EBF5656F-DA98-594D-947A-0C20F8D6D301}.Release|x64.Build.0 = Release|Any CPU
+		{EBBFAA95-05FB-5BE3-A1EF-FFC258F30BAF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EBBFAA95-05FB-5BE3-A1EF-FFC258F30BAF}.Debug|x64.Build.0 = Debug|Any CPU
+		{EBBFAA95-05FB-5BE3-A1EF-FFC258F30BAF}.Release|x64.ActiveCfg = Release|Any CPU
+		{EBBFAA95-05FB-5BE3-A1EF-FFC258F30BAF}.Release|x64.Build.0 = Release|Any CPU
+		{1C33A78F-AEE5-5F83-835E-93A55E81879F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1C33A78F-AEE5-5F83-835E-93A55E81879F}.Debug|x64.Build.0 = Debug|Any CPU
+		{1C33A78F-AEE5-5F83-835E-93A55E81879F}.Release|x64.ActiveCfg = Release|Any CPU
+		{1C33A78F-AEE5-5F83-835E-93A55E81879F}.Release|x64.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\SpriteForge.Core\SpriteForge.Core.csproj" />
+  </ItemGroup>
+</Project>

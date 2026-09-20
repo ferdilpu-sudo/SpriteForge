@@ -1,0 +1,23 @@
+<UserControl
+    x:Class="SpriteForge.App.Views.Stages.FramesStageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SpriteForge.App.Controls">
+    <Grid ColumnSpacing="12" Padding="14">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
+        <controls:CheckerboardControl ImagePath="{Binding PreviewImagePath}" Zoom="{Binding PreviewZoom}" />
+        <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
+            <StackPanel Spacing="10">
+                <TextBlock Text="FRAMES" Style="{StaticResource InspectorTitleStyle}" />
+                <TextBlock Text="Extract frames" Style="{StaticResource SectionTitleStyle}" />
+                <TextBlock Text="Start time (seconds)"/><NumberBox Value="{Binding ExtractionStartSeconds, Mode=TwoWay}" Minimum="0" SpinButtonPlacementMode="Compact" />
+                <CheckBox Content="Use end time" IsChecked="{Binding ExtractionHasEndTime, Mode=TwoWay}" />
+                <TextBlock Text="End time (seconds)"/><NumberBox Value="{Binding ExtractionEndSeconds, Mode=TwoWay}" Minimum="0" SpinButtonPlacementMode="Compact" IsEnabled="{Binding ExtractionHasEndTime}" />
+                <TextBlock Text="Target FPS"/><NumberBox Value="{Binding PreviewFps, Mode=TwoWay}" Minimum="0.01" Maximum="120" SpinButtonPlacementMode="Compact" />
+                <TextBlock Text="{Binding FramePosition}" Opacity="0.64" />
+                <Button Content="Extract / Re-extract frames" Style="{StaticResource AccentButtonStyle}" Click="OnExtractClick" />
+                <InfoBar IsOpen="True" IsClosable="False" Severity="Warning" Title="Dependent work" Message="Re-extraction replaces frame state only after FFmpeg succeeds; existing valid results survive a failed attempt." />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

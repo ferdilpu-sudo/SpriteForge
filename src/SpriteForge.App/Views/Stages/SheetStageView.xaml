@@ -1,0 +1,28 @@
+<UserControl
+    x:Class="SpriteForge.App.Views.Stages.SheetStageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SpriteForge.App.Controls">
+    <Grid ColumnSpacing="12" Padding="14">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
+        <Grid>
+            <controls:CheckerboardControl ImagePath="{Binding PreviewImagePath}" Zoom="{Binding PreviewZoom}" />
+            <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="12,6" Margin="18" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="6">
+                <TextBlock Text="{Binding SheetSummary}" />
+            </Border>
+        </Grid>
+        <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
+            <StackPanel Spacing="10">
+                <TextBlock Text="SHEET" Style="{StaticResource InspectorTitleStyle}" />
+                <TextBlock Text="Sprite sheet" Style="{StaticResource SectionTitleStyle}" />
+                <TextBlock Text="Cell"/>
+                <StackPanel Orientation="Horizontal" Spacing="8"><NumberBox Value="{Binding SheetCellWidth, Mode=TwoWay}" Minimum="1" Width="110"/><TextBlock Text="×" VerticalAlignment="Center"/><NumberBox Value="{Binding SheetCellHeight, Mode=TwoWay}" Minimum="1" Width="110"/></StackPanel>
+                <TextBlock Text="Columns (0 = Auto)"/><NumberBox Value="{Binding SheetColumns, Mode=TwoWay}" Minimum="0" SpinButtonPlacementMode="Compact" />
+                <TextBlock Text="Padding"/><NumberBox Value="{Binding SheetPadding, Mode=TwoWay}" Minimum="0" />
+                <TextBlock Text="Spacing"/><NumberBox Value="{Binding SheetSpacing, Mode=TwoWay}" Minimum="0" />
+                <ToggleSwitch Header="Power-of-two canvas" IsOn="{Binding PowerOfTwoSheet, Mode=TwoWay}" />
+                <Button Content="Build sheet preview" Style="{StaticResource AccentButtonStyle}" Click="OnBuildClick" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <ProjectReference Include="..\SpriteForge.Presentation\SpriteForge.Presentation.csproj" />
+    <ProjectReference Include="..\SpriteForge.Application\SpriteForge.Application.csproj" />
+    <ProjectReference Include="..\SpriteForge.Infrastructure\SpriteForge.Infrastructure.csproj" />
+    <ProjectReference Include="..\SpriteForge.Media\SpriteForge.Media.csproj" />
+    <ProjectReference Include="..\SpriteForge.Export\SpriteForge.Export.csproj" />
+    <ProjectReference Include="..\SpriteForge.Diagnostics\SpriteForge.Diagnostics.csproj" />
+    <Content Include="..\..\workers\background-removal\worker.py" Link="workers\background-removal\worker.py" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\workers\background-removal\requirements.txt" Link="workers\background-removal\requirements.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

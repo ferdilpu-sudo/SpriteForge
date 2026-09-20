@@ -1,0 +1,21 @@
+<UserControl
+    x:Class="SpriteForge.App.Views.Stages.CutoutStageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SpriteForge.App.Controls">
+    <Grid ColumnSpacing="12" Padding="14">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
+        <controls:CheckerboardControl ImagePath="{Binding PreviewImagePath}" Zoom="{Binding PreviewZoom}" />
+        <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
+            <StackPanel Spacing="12">
+                <TextBlock Text="CUTOUT" Style="{StaticResource InspectorTitleStyle}" />
+                <TextBlock Text="Background removal" Style="{StaticResource SectionTitleStyle}" />
+                <ToggleSwitch Header="Remove background" IsOn="{Binding BackgroundRemovalEnabled, Mode=TwoWay}" />
+                <TextBlock Text="Processor"/><ComboBox SelectedIndex="0"><ComboBoxItem Content="Local default (rembg)"/></ComboBox>
+                <TextBlock Text="Alpha threshold"/><Slider Minimum="0" Maximum="1" Value="{Binding AlphaThreshold, Mode=TwoWay}" StepFrequency="0.01" />
+                <Button Content="Process all enabled frames" Style="{StaticResource AccentButtonStyle}" Click="OnProcessAllClick" />
+                <TextBlock Text="Original source files are never modified. Disabling this stage passes extracted frames directly to normalization." TextWrapping="Wrap" Opacity="0.64" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

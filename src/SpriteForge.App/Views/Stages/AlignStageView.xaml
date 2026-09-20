@@ -1,0 +1,46 @@
+<UserControl
+    x:Class="SpriteForge.App.Views.Stages.AlignStageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SpriteForge.App.Controls">
+    <Grid ColumnSpacing="12" Padding="14">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="300"/></Grid.ColumnDefinitions>
+        <controls:CheckerboardControl ImagePath="{Binding PreviewImagePath}" Zoom="{Binding PreviewZoom}" />
+        <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
+            <StackPanel Spacing="12">
+                <TextBlock Text="ALIGN" Style="{StaticResource InspectorTitleStyle}" />
+                <TextBlock Text="Normalize frames" Style="{StaticResource SectionTitleStyle}" />
+                <TextBlock Text="Canvas"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <NumberBox Value="{Binding CanvasWidth, Mode=TwoWay}" Minimum="1" Width="110"/>
+                    <TextBlock Text="×" VerticalAlignment="Center"/>
+                    <NumberBox Value="{Binding CanvasHeight, Mode=TwoWay}" Minimum="1" Width="110"/>
+                </StackPanel>
+                <TextBlock Text="Fit"/>
+                <ComboBox SelectedValuePath="Tag" SelectedValue="{Binding FitMode, Mode=TwoWay}">
+                    <ComboBoxItem Content="Contain" Tag="contain"/><ComboBoxItem Content="Cover" Tag="cover"/><ComboBoxItem Content="Original" Tag="original"/>
+                </ComboBox>
+                <TextBlock Text="Anchor"/>
+                <ComboBox SelectedValuePath="Tag" SelectedValue="{Binding Anchor, Mode=TwoWay}">
+                    <ComboBoxItem Content="Top left" Tag="top_left"/>
+                    <ComboBoxItem Content="Top center" Tag="top_center"/>
+                    <ComboBoxItem Content="Top right" Tag="top_right"/>
+                    <ComboBoxItem Content="Center left" Tag="center_left"/>
+                    <ComboBoxItem Content="Center" Tag="center"/>
+                    <ComboBoxItem Content="Center right" Tag="center_right"/>
+                    <ComboBoxItem Content="Bottom left" Tag="bottom_left"/>
+                    <ComboBoxItem Content="Bottom center" Tag="bottom_center"/>
+                    <ComboBoxItem Content="Bottom right" Tag="bottom_right"/>
+                </ComboBox>
+                <ToggleSwitch Header="Auto-trim transparent margins" IsOn="{Binding AutoTrim, Mode=TwoWay}" />
+                <TextBlock Text="Selected frame pivot (0–1)" Margin="0,4,0,0"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <NumberBox Header="X" Value="{Binding SelectedFramePivotX, Mode=TwoWay}" Minimum="0" Maximum="1" SmallChange="0.05" Width="110"/>
+                    <NumberBox Header="Y" Value="{Binding SelectedFramePivotY, Mode=TwoWay}" Minimum="0" Maximum="1" SmallChange="0.05" Width="110"/>
+                </StackPanel>
+                <Button Content="Apply pivot to selected frame" Click="OnApplyPivotClick" />
+                <Button Content="Apply normalization to all enabled frames" Style="{StaticResource AccentButtonStyle}" Click="OnApplyAllClick" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

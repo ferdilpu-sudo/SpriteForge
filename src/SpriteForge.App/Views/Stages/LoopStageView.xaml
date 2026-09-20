@@ -1,0 +1,27 @@
+<UserControl
+    x:Class="SpriteForge.App.Views.Stages.LoopStageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SpriteForge.App.Controls">
+    <Grid ColumnSpacing="12" Padding="14">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="320"/></Grid.ColumnDefinitions>
+        <controls:CheckerboardControl ImagePath="{Binding PreviewImagePath}" Zoom="{Binding PreviewZoom}" />
+        <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
+            <StackPanel Spacing="10">
+                <TextBlock Text="LOOP" Style="{StaticResource InspectorTitleStyle}" />
+                <TextBlock Text="Loop optimization" Style="{StaticResource SectionTitleStyle}" />
+                <ToggleSwitch Header="Loop enabled" IsOn="{Binding LoopEnabled, Mode=TwoWay}" />
+                <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="Start" Width="60" VerticalAlignment="Center"/><NumberBox Value="{Binding LoopStart, Mode=TwoWay}" Minimum="1" Maximum="{Binding Frames.Count}" Width="120"/></StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="End" Width="60" VerticalAlignment="Center"/><NumberBox Value="{Binding LoopEnd, Mode=TwoWay}" Minimum="1" Maximum="{Binding Frames.Count}" Width="120"/></StackPanel>
+                <Button Content="Apply manual range" Click="OnApplyManualClick" />
+                <Button Content="Analyze loop seams" Style="{StaticResource AccentButtonStyle}" Click="OnAnalyzeClick" />
+                <TextBlock Text="Suggested seams" FontWeight="SemiBold" Margin="0,6,0,0" />
+                <ListView ItemsSource="{Binding LoopCandidates}" SelectedItem="{Binding SelectedLoopCandidate, Mode=TwoWay}" SelectionMode="Single" MaxHeight="180">
+                    <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate></ListView.ItemTemplate>
+                </ListView>
+                <Button Content="Use selected suggestion" Click="OnUseSuggestionClick" />
+                <TextBlock Text="Lower score means a closer V1 boundary match; it is not a universal quality percentage." TextWrapping="Wrap" Opacity="0.64" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,41 @@
+<UserControl
+    x:Class="SpriteForge.App.Controls.FrameStripControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SpriteForge.App.Controls">
+    <Grid Padding="12,6" Background="{ThemeResource LayerFillColorDefaultBrush}" RowSpacing="6">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" Spacing="6">
+            <Button Content="Enable / disable" Click="OnToggleClick" />
+            <Button Content="←" ToolTipService.ToolTip="Move selected frame left" Click="OnMoveLeftClick" />
+            <Button Content="→" ToolTipService.ToolTip="Move selected frame right" Click="OnMoveRightClick" />
+            <Button Content="Duplicate" Click="OnDuplicateClick" />
+            <Button Content="Remove" Click="OnRemoveClick" />
+            <Button Content="Reset sequence" Click="OnResetClick" />
+            <Rectangle Width="1" Height="24" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="4,0" />
+            <TextBlock Text="Duration (ms)" VerticalAlignment="Center" Margin="4,0,0,0" />
+            <NumberBox Width="104" Minimum="1" Maximum="60000" SmallChange="1" Value="{Binding SelectedFrameDurationMs, Mode=TwoWay}" />
+            <Button Content="Apply" Click="OnApplyDurationClick" />
+        </StackPanel>
+        <ListView x:Name="FrameList" Grid.Row="1" ItemsSource="{Binding Frames}" SelectedItem="{Binding SelectedFrame, Mode=TwoWay}" SelectionMode="Single" SelectionChanged="OnSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate><ItemsStackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Width="78" Height="72" Margin="2">
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6">
+                            <Grid>
+                                <controls:FileImageControl ImagePath="{Binding PreviewPath}" Margin="3" />
+                                <CheckBox IsChecked="{Binding Enabled}" IsHitTestVisible="False" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2" />
+                                <Border VerticalAlignment="Bottom" Background="#99000000" Padding="4,1">
+                                    <TextBlock Text="{Binding DisplayNumber}" HorizontalAlignment="Center" Foreground="White"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</UserControl>
