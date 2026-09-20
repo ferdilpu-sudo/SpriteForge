@@ -1,0 +1,12 @@
+.vs/
+.idea/
+**/bin/
+**/obj/
+artifacts/
+*.user
+*.suo
+.venv/
+__pycache__/
+*.pyc
+local.settings.json
+*.spriteforge.local.json
