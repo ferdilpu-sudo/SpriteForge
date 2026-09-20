@@ -4,15 +4,19 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $PSScriptRoot
+$VerifyPrereqs = Join-Path $Root 'scripts\verify-prereqs.ps1'
 
 Push-Location $Root
 try {
     Write-Host "== SpriteForge V1 prerequisite check =="
-    & (Join-Path $Root 'scripts\verify-prereqs.ps1')
+    & $VerifyPrereqs -Strict
 
     if ($SetupWorker) {
         Write-Host "== Setting up local background-removal worker =="
         & (Join-Path $Root 'scripts\setup-worker.ps1')
+
+        Write-Host "== Verifying background-removal worker =="
+        & $VerifyPrereqs -Strict -RequireWorker
     }
 
     Write-Host "== Restore =="

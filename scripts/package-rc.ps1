@@ -54,8 +54,30 @@ New-Item -ItemType Directory -Force -Path $DocsDirectory | Out-Null
 
 Copy-Item (Join-Path $Root 'scripts\verify-prereqs.ps1') (Join-Path $ScriptsDirectory 'verify-prereqs.ps1')
 Copy-Item (Join-Path $Root 'scripts\setup-worker.ps1') (Join-Path $ScriptsDirectory 'setup-worker.ps1')
+Copy-Item (Join-Path $Root 'scripts\desktop-smoke.ps1') (Join-Path $ScriptsDirectory 'desktop-smoke.ps1')
 Copy-Item (Join-Path $Root 'docs\V1-ACCEPTANCE.md') (Join-Path $DocsDirectory 'V1-ACCEPTANCE.md')
 Copy-Item (Join-Path $Root 'README.md') (Join-Path $PackageRoot 'README.md')
+
+$SourceCommit = $env:GITHUB_SHA
+if ([string]::IsNullOrWhiteSpace($SourceCommit)) {
+    $GitCommit = & git -C $Root rev-parse HEAD 2>$null
+    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($GitCommit)) {
+        $SourceCommit = $GitCommit.Trim()
+    } else {
+        $SourceCommit = 'unknown'
+    }
+}
+
+$BuildInfo = [ordered]@{
+    product = 'SpriteForge'
+    channel = 'v1-rc'
+    sourceCommit = $SourceCommit
+    configuration = $Configuration
+    runtime = $Runtime
+    selfContained = $true
+    generatedAtUtc = (Get-Date).ToUniversalTime().ToString('o')
+}
+$BuildInfo | ConvertTo-Json | Set-Content -Path (Join-Path $PackageRoot 'RC-BUILD.json') -Encoding UTF8
 
 $RcReadme = @'
 # SpriteForge V1 Release Candidate
@@ -70,13 +92,13 @@ This is an unpackaged, self-contained WinUI 3 x64 test build.
 
 ```powershell
 .\scripts\setup-worker.ps1
-.\scripts\verify-prereqs.ps1
+.\scripts\verify-prereqs.ps1 -Strict -RequireWorker
 ```
 
-4. Launch:
+4. Run the startup smoke check:
 
 ```powershell
-.\SpriteForge.App.exe
+.\scripts\desktop-smoke.ps1
 ```
 
 5. Complete `docs\V1-ACCEPTANCE.md`.

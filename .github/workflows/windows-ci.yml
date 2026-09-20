@@ -87,7 +87,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v7
         with:
-          name: SpriteForge-v1-rc-win-x64
           path: artifacts/SpriteForge-v1-rc-win-x64.zip
+          archive: false
           if-no-files-found: error
           retention-days: 14

@@ -7,14 +7,25 @@ $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $PSScriptRoot
 
 if ([string]::IsNullOrWhiteSpace($PackageRoot)) {
-    $PackageRoot = Join-Path $Root 'artifacts\SpriteForge-v1-rc-win-x64'
+    if (Test-Path (Join-Path $Root 'SpriteForge.App.exe')) {
+        $PackageRoot = $Root
+    } else {
+        $PackageRoot = Join-Path $Root 'artifacts\SpriteForge-v1-rc-win-x64'
+    }
 } elseif (-not [System.IO.Path]::IsPathRooted($PackageRoot)) {
     $PackageRoot = Join-Path $Root $PackageRoot
 }
 
+$PackageRoot = [System.IO.Path]::GetFullPath($PackageRoot)
 $ExePath = Join-Path $PackageRoot 'SpriteForge.App.exe'
 if (-not (Test-Path $ExePath)) {
     throw "SpriteForge RC executable was not found at $ExePath. Run .\scripts\package-rc.ps1 first."
+}
+
+$VerifyScript = Join-Path $PackageRoot 'scripts\verify-prereqs.ps1'
+if (Test-Path $VerifyScript) {
+    Write-Host "== Verifying RC runtime prerequisites =="
+    & $VerifyScript -Strict -RequireWorker
 }
 
 Write-Host "Launching SpriteForge RC..."
