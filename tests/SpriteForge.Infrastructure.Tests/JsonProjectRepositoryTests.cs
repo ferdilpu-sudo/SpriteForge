@@ -60,7 +60,7 @@ public sealed class JsonProjectRepositoryTests
               "exports": []
             }
             """;
-            await File.WriteAllTextAsync(file, json);
+            await File.WriteAllTextAsync(file, json, TestContext.Current.CancellationToken);
 
             var exception = await Assert.ThrowsAsync<SpriteForge.Core.Errors.SpriteForgeException>(() =>
                 new JsonProjectRepository().LoadAsync(file, TestContext.Current.CancellationToken));

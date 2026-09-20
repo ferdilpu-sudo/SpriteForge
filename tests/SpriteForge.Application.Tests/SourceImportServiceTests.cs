@@ -20,8 +20,8 @@ public sealed class SourceImportServiceTests
         {
             var frame10 = Path.Combine(input, "walk10.png");
             var frame2 = Path.Combine(input, "walk2.png");
-            await File.WriteAllBytesAsync(frame10, [10]);
-            await File.WriteAllBytesAsync(frame2, [2]);
+            await File.WriteAllBytesAsync(frame10, [10], TestContext.Current.CancellationToken);
+            await File.WriteAllBytesAsync(frame2, [2], TestContext.Current.CancellationToken);
 
             var project = new ProjectDocument();
             var workspace = new ProjectWorkspacePaths(workspaceRoot);
@@ -37,7 +37,7 @@ public sealed class SourceImportServiceTests
             Assert.Equal(2, artifacts.Count);
             Assert.Equal(2, project.Frames.Count);
             Assert.Equal(0, project.Frames[0].SourceIndex);
-            Assert.Equal(new byte[] { 2 }, await File.ReadAllBytesAsync(Path.Combine(workspace.RootPath, artifacts[0].RelativePath)));
+            Assert.Equal(new byte[] { 2 }, await File.ReadAllBytesAsync(Path.Combine(workspace.RootPath, artifacts[0].RelativePath), TestContext.Current.CancellationToken));
             Assert.All(artifacts, artifact => Assert.StartsWith("source", artifact.RelativePath, StringComparison.OrdinalIgnoreCase));
             Assert.Equal("frame_sequence", project.Source?.Kind);
         }
@@ -87,7 +87,7 @@ public sealed class SourceImportServiceTests
         try
         {
             var sourcePath = Path.Combine(root, "corrupt.png");
-            await File.WriteAllBytesAsync(sourcePath, new byte[] { 1, 2, 3 });
+            await File.WriteAllBytesAsync(sourcePath, new byte[] { 1, 2, 3 }, TestContext.Current.CancellationToken);
             var existingSource = new ProjectSource("video", Guid.NewGuid());
             var project = new ProjectDocument { Source = existingSource };
             var service = new SourceImportService(new TestHashService(), new RejectingValidator());
