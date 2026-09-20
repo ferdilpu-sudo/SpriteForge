@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Infrastructure.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Architecture.Tests", "tests\SpriteForge.Architecture.Tests\SpriteForge.Architecture.Tests.csproj", "{1C33A78F-AEE5-5F83-835E-93A55E81879F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteForge.Pipeline.Tests", "tests\SpriteForge.Pipeline.Tests\SpriteForge.Pipeline.Tests.csproj", "{6D9F1E2A-9C37-4CC2-8EF3-72A8D05C7B31}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -86,5 +88,9 @@ Global
 		{1C33A78F-AEE5-5F83-835E-93A55E81879F}.Debug|x64.Build.0 = Debug|Any CPU
 		{1C33A78F-AEE5-5F83-835E-93A55E81879F}.Release|x64.ActiveCfg = Release|Any CPU
 		{1C33A78F-AEE5-5F83-835E-93A55E81879F}.Release|x64.Build.0 = Release|Any CPU
+		{6D9F1E2A-9C37-4CC2-8EF3-72A8D05C7B31}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6D9F1E2A-9C37-4CC2-8EF3-72A8D05C7B31}.Debug|x64.Build.0 = Debug|Any CPU
+		{6D9F1E2A-9C37-4CC2-8EF3-72A8D05C7B31}.Release|x64.ActiveCfg = Release|Any CPU
+		{6D9F1E2A-9C37-4CC2-8EF3-72A8D05C7B31}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

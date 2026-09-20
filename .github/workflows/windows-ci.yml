@@ -41,6 +41,10 @@ jobs:
         shell: pwsh
         run: dotnet build SpriteForge.sln -c Release -p:Platform=x64 --no-restore
 
+      - name: Verify FFmpeg
+        shell: pwsh
+        run: ffmpeg -version
+
       - name: Test Core
         shell: pwsh
         run: dotnet test tests/SpriteForge.Core.Tests/SpriteForge.Core.Tests.csproj -c Release --no-restore --verbosity normal
@@ -56,3 +60,7 @@ jobs:
       - name: Test Architecture
         shell: pwsh
         run: dotnet test tests/SpriteForge.Architecture.Tests/SpriteForge.Architecture.Tests.csproj -c Release --no-restore --verbosity normal
+
+      - name: Test Pipeline Integration
+        shell: pwsh
+        run: dotnet test tests/SpriteForge.Pipeline.Tests/SpriteForge.Pipeline.Tests.csproj -c Release --no-restore --verbosity normal
