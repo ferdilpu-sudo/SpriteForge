@@ -1,0 +1,58 @@
+name: Windows CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+          dotnet-quality: ga
+
+      - name: Show SDK
+        shell: pwsh
+        run: dotnet --info
+
+      - name: Restore
+        shell: pwsh
+        run: dotnet restore SpriteForge.sln
+
+      - name: Build solution
+        shell: pwsh
+        run: dotnet build SpriteForge.sln -c Release -p:Platform=x64 --no-restore
+
+      - name: Test Core
+        shell: pwsh
+        run: dotnet test tests/SpriteForge.Core.Tests/SpriteForge.Core.Tests.csproj -c Release --no-restore --verbosity normal
+
+      - name: Test Application
+        shell: pwsh
+        run: dotnet test tests/SpriteForge.Application.Tests/SpriteForge.Application.Tests.csproj -c Release --no-restore --verbosity normal
+
+      - name: Test Infrastructure
+        shell: pwsh
+        run: dotnet test tests/SpriteForge.Infrastructure.Tests/SpriteForge.Infrastructure.Tests.csproj -c Release --no-restore --verbosity normal
+
+      - name: Test Architecture
+        shell: pwsh
+        run: dotnet test tests/SpriteForge.Architecture.Tests/SpriteForge.Architecture.Tests.csproj -c Release --no-restore --verbosity normal
