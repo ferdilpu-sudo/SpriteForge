@@ -38,7 +38,8 @@ The repository now includes:
 - relative artifact path containment checks when loading projects;
 - per-job logging, cancellation, FFmpeg/rembg/workspace diagnostics;
 - stage-state checks that distinguish missing physical artifacts from valid cached/exported artifacts;
-- Core/Application/Infrastructure/Architecture test projects.
+- Core/Application/Infrastructure/Architecture test projects;
+- pipeline integration tests for real FFmpeg frame extraction and golden JSON metadata output.
 
 ## Validation boundary
 Windows CI is now part of the repository. On September 20, 2026, GitHub Actions on `windows-latest` with .NET 10 successfully completed:
@@ -48,7 +49,11 @@ Windows CI is now part of the repository. On September 20, 2026, GitHub Actions 
 - Core tests;
 - Application tests;
 - Infrastructure tests;
-- Architecture tests.
+- Architecture tests;
+- pipeline integration tests using FFmpeg 9.0.1;
+- golden JSON metadata export verification.
+
+The integration pass also caught and fixed obsolete FFmpeg `-vsync` usage by migrating frame extraction to `-fps_mode passthrough`.
 
 The implementation pass also completed:
 

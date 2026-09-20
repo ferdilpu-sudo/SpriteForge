@@ -34,6 +34,7 @@ src/
 workers/
   background-removal/           Isolated rembg worker
 tests/
+  SpriteForge.Pipeline.Tests/     FFmpeg integration + golden export contracts
 docs/
 scripts/
 ```
@@ -105,9 +106,10 @@ The repository now has a Windows CI release gate in `.github/workflows/windows-c
 - Core tests;
 - Application tests;
 - Infrastructure tests;
-- Architecture tests.
+- Architecture tests;
+- Pipeline integration tests covering real FFmpeg extraction and golden JSON metadata output.
 
-Static XML/XAML/project checks, event-handler wiring checks, project-reference boundary checks, Python worker syntax validation, and FFmpeg extraction smoke testing were also performed during implementation.
+CI installs a pinned FFmpeg 9.0.1 dependency before integration testing. Static XML/XAML/project checks, event-handler wiring checks, project-reference boundary checks, Python worker syntax validation, and FFmpeg extraction smoke testing were also performed during implementation.
 
 For local verification:
 
