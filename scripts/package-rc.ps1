@@ -44,10 +44,15 @@ dotnet publish (Join-Path $Root 'src\SpriteForge.App\SpriteForge.App.csproj') `
     -o $PackageRoot
 
 $ExePath = Join-Path $PackageRoot 'SpriteForge.App.exe'
+$PriPath = Join-Path $PackageRoot 'SpriteForge.App.pri'
 $WorkerPath = Join-Path $PackageRoot 'workers\background-removal\worker.py'
 if (-not (Test-Path $ExePath)) {
     throw "Published executable is missing: $ExePath"
 }
+if (-not (Test-Path $PriPath)) {
+    throw "Published app PRI is missing: $PriPath. WinUI XAML cannot load reliably without the app resource index."
+}
+Write-Host "App PRI: $PriPath"
 if (-not (Test-Path $WorkerPath)) {
     throw "Background-removal worker source is missing from publish output: $WorkerPath"
 }

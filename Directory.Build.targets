@@ -1,0 +1,21 @@
+<Project>
+  <!--
+    Windows App SDK workaround for unpackaged WinUI publish.
+    dotnet publish can omit the app PRI from publish output even though it is
+    generated in the build output. Without the PRI, ms-appx XAML resolution
+    fails at runtime with XamlParseException / 0xC000027B.
+    Remove this target once the upstream Windows App SDK publish bug is fixed.
+  -->
+  <Target Name="SpriteForgeAddProjectPriToResolvedFileToPublish"
+          BeforeTargets="ComputeResolvedFilesToPublishList"
+          DependsOnTargets="$(GenerateProjectPriFile)"
+          Condition="'$(UseWinUI)' == 'true' and '$(WindowsPackageType)' == 'None'">
+    <ItemGroup>
+      <ResolvedFileToPublish Include="$(ProjectPriFullPath)"
+                             Condition="Exists('$(ProjectPriFullPath)')">
+        <RelativePath>$(ProjectPriFileName)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+</Project>
