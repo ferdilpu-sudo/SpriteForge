@@ -5,12 +5,15 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit.v3" />
+    <PackageReference Include="SkiaSharp" />
     <ProjectReference Include="..\..\src\SpriteForge.Core\SpriteForge.Core.csproj" />
+    <ProjectReference Include="..\..\src\SpriteForge.Application\SpriteForge.Application.csproj" />
     <ProjectReference Include="..\..\src\SpriteForge.Infrastructure\SpriteForge.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\SpriteForge.Media\SpriteForge.Media.csproj" />
     <ProjectReference Include="..\..\src\SpriteForge.Export\SpriteForge.Export.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Fixtures\expected-metadata.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures\copy-worker.py" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

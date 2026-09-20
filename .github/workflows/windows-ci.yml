@@ -29,9 +29,18 @@ jobs:
           dotnet-version: 10.0.x
           dotnet-quality: ga
 
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
       - name: Show SDK
         shell: pwsh
         run: dotnet --info
+
+      - name: Validate background-removal worker syntax
+        shell: pwsh
+        run: python -m py_compile workers/background-removal/worker.py
 
       - name: Restore
         shell: pwsh
