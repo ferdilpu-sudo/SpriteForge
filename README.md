@@ -124,3 +124,15 @@ dotnet test SpriteForge.sln -c Release
 The remaining release gate is application launch plus the end-to-end V1 acceptance flow with real media and the local background-removal worker.
 
 See `docs/IMPLEMENTATION-READINESS.md` for readiness decisions and the supplied product documents in `docs/` for the source-of-truth requirements.
+
+## V1 acceptance
+
+The automated Windows acceptance gate now covers import, real FFmpeg extraction, Cutout contract execution, normalization, loop analysis, sprite-sheet/metadata/frame export, project save/reopen, and deterministic re-export hash comparison.
+
+Run the local gate with:
+
+```powershell
+.\scripts\acceptance-v1.ps1
+```
+
+The real `rembg` model runtime and interactive WinUI behavior remain desktop-manual checks. See `docs/V1-ACCEPTANCE.md` for the release checklist.

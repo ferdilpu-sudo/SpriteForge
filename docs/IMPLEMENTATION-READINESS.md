@@ -66,3 +66,10 @@ The implementation pass also completed:
 - FFmpeg presence and extraction smoke testing.
 
 The remaining release validation is runtime application launch and the end-to-end V1 workflow with real media, FFmpeg, and the local `rembg` worker on a Windows desktop environment.
+
+## Automated V1 acceptance
+Windows CI now executes an end-to-end deterministic pipeline acceptance scenario covering video import, FFmpeg extraction, Cutout contract execution with alpha output, normalization, loop analysis, sheet preview, PNG/JSON/individual-frame export, project save/reopen, and SHA-256 equality of repeated exports.
+
+The background-removal process adapter is integration-tested independently with a deterministic worker fixture, while the production Python worker is syntax-checked in CI. Real `rembg` model execution remains a manual desktop gate because first-run model availability/download is external to the repository.
+
+See `docs/V1-ACCEPTANCE.md` for the automated and manual release boundary.
