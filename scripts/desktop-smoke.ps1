@@ -43,8 +43,7 @@ try {
     $Process.Refresh()
 
     if ($Process.HasExited) {
-        $UnsignedCode = [uint32]($Process.ExitCode -band 0xffffffff)
-        $HexCode = ('0x{0:X8}' -f $UnsignedCode)
+        $HexCode = ('0x{0:X8}' -f [int]$Process.ExitCode)
         $StartupLog = Join-Path $env:LOCALAPPDATA 'SpriteForge\logs\startup.log'
         Write-Host "SpriteForge exited during startup. Exit code: $($Process.ExitCode) ($HexCode)."
         if (Test-Path $StartupLog) {
