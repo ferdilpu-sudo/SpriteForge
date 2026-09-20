@@ -50,11 +50,12 @@ Write-Host "`n== background-removal worker =="
 $WorkerReady = $false
 if (Test-Path $WorkerPython) {
     try {
-        $WorkerOutput = & $WorkerPython -c 'import rembg, PIL; print("worker dependencies OK")' 2>&1
+        $WorkerOutput = & $WorkerPython -c 'import rembg, PIL' 2>&1
         $WorkerExitCode = $LASTEXITCODE
         $WorkerOutput | Select-Object -First 3
         if ($WorkerExitCode -eq 0) {
             $WorkerReady = $true
+            Write-Host 'worker dependencies OK'
         } else {
             Write-Host "Worker dependency check failed with code $WorkerExitCode."
             if ($RequireWorker) {
