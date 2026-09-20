@@ -14,6 +14,11 @@ if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
     $OutputRoot = Join-Path $Root $OutputRoot
 }
 
+$RunningSpriteForge = @(Get-Process -Name 'SpriteForge.App' -ErrorAction SilentlyContinue)
+if ($RunningSpriteForge.Count -gt 0) {
+    $Ids = ($RunningSpriteForge | ForEach-Object { $_.Id }) -join ', '
+    throw "SpriteForge is running (PID: $Ids). Close it before rebuilding the RC package."
+}
 $PackageName = "SpriteForge-v1-rc-$Runtime"
 $PackageRoot = Join-Path $OutputRoot $PackageName
 $ZipPath = Join-Path $OutputRoot "$PackageName.zip"
