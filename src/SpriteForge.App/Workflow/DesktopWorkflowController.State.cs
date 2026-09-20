@@ -102,7 +102,7 @@ internal sealed partial class DesktopWorkflowController
         {
             var selectedIndex = preferredIndex
                 ?? (preferredFrameId is null ? _viewModel.CurrentFrameIndex : Array.FindIndex(frameViewModels, frame => frame.FrameId == preferredFrameId.Value));
-            _viewModel.CurrentFrameIndex = Math.Clamp(selectedIndex ?? 0, 0, _viewModel.Frames.Count - 1);
+            _viewModel.CurrentFrameIndex = Math.Clamp(selectedIndex, 0, _viewModel.Frames.Count - 1);
             _viewModel.SelectedFrame = _viewModel.Frames[_viewModel.CurrentFrameIndex];
             _viewModel.PreviewImagePath = _viewModel.SelectedFrame.PreviewPath;
             var selectedRecord = project.Frames.First(frame => frame.Id == _viewModel.SelectedFrame.FrameId);
