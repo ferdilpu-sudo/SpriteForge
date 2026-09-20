@@ -98,16 +98,27 @@ Provider-specific image-to-video generation remains intentionally unimplemented 
 
 ### Validation status
 
-Static XML/XAML/project checks, event-handler wiring checks, project-reference boundary checks, Python worker syntax validation, and FFmpeg extraction smoke testing have been performed in the implementation environment. That environment does **not** contain the .NET SDK, so a Windows machine with .NET 10 + WinUI tooling must still run the release gate:
+The repository now has a Windows CI release gate in `.github/workflows/windows-ci.yml`. On September 20, 2026, the `main` branch completed all of the following successfully on `windows-latest` with .NET 10:
+
+- solution restore;
+- Release x64 build, including WinUI/XAML compilation;
+- Core tests;
+- Application tests;
+- Infrastructure tests;
+- Architecture tests.
+
+Static XML/XAML/project checks, event-handler wiring checks, project-reference boundary checks, Python worker syntax validation, and FFmpeg extraction smoke testing were also performed during implementation.
+
+For local verification:
 
 ```powershell
 .\scripts\verify-prereqs.ps1
 .\scripts\setup-worker.ps1
 dotnet restore SpriteForge.sln
-dotnet build SpriteForge.sln -c Debug
-dotnet test SpriteForge.sln -c Debug
+dotnet build SpriteForge.sln -c Release -p:Platform=x64
+dotnet test SpriteForge.sln -c Release
 ```
 
-Do not treat the source bundle as release-validated until the Windows build/test and V1 end-to-end acceptance flow pass.
+The remaining release gate is application launch plus the end-to-end V1 acceptance flow with real media and the local background-removal worker.
 
 See `docs/IMPLEMENTATION-READINESS.md` for readiness decisions and the supplied product documents in `docs/` for the source-of-truth requirements.

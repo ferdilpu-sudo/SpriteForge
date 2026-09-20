@@ -41,7 +41,8 @@ internal sealed class ImageDifferenceScorer
         using var canvas = new SKCanvas(sample);
         canvas.Clear(SKColors.Transparent);
         using var paint = new SKPaint { IsAntialias = true };
-        canvas.DrawBitmap(source, SKRect.Create(0, 0, SampleSize, SampleSize), paint);
+        var sampling = new SKSamplingOptions(SKFilterMode.Nearest);
+        canvas.DrawBitmap(source, SKRect.Create(0, 0, SampleSize, SampleSize), sampling, paint);
         canvas.Flush();
         return sample;
     }

@@ -24,6 +24,7 @@ public sealed class PngSpriteSheetExporter : ISpriteSheetExporter
         using var sheet = new SKBitmap(imageInfo);
         using var canvas = new SKCanvas(sheet);
         canvas.Clear(SKColors.Transparent);
+        var sampling = new SKSamplingOptions(SKFilterMode.Nearest);
 
         foreach (var cell in layout.Cells)
         {
@@ -36,7 +37,7 @@ public sealed class PngSpriteSheetExporter : ISpriteSheetExporter
             if (image.Width != cell.Width || image.Height != cell.Height)
                 throw new InvalidOperationException($"Frame {cell.FrameId} does not match the configured cell size.");
 
-            canvas.DrawBitmap(image, cell.X, cell.Y);
+            canvas.DrawBitmap(image, cell.X, cell.Y, sampling);
         }
 
         canvas.Flush();

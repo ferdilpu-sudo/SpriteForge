@@ -16,9 +16,9 @@ public sealed class JsonProjectRepositoryTests
         {
             var repository = new JsonProjectRepository();
             var expected = new ProjectDocument { Name = "Round Trip" };
-            await repository.SaveAsync(file, expected, CancellationToken.None);
+            await repository.SaveAsync(file, expected, TestContext.Current.CancellationToken);
 
-            var actual = await repository.LoadAsync(file, CancellationToken.None);
+            var actual = await repository.LoadAsync(file, TestContext.Current.CancellationToken);
 
             Assert.Equal(expected.ProjectId, actual.ProjectId);
             Assert.Equal("Round Trip", actual.Name);
@@ -63,7 +63,7 @@ public sealed class JsonProjectRepositoryTests
             await File.WriteAllTextAsync(file, json);
 
             var exception = await Assert.ThrowsAsync<SpriteForge.Core.Errors.SpriteForgeException>(() =>
-                new JsonProjectRepository().LoadAsync(file, CancellationToken.None));
+                new JsonProjectRepository().LoadAsync(file, TestContext.Current.CancellationToken));
 
             Assert.Equal("PROJECT_ARTIFACT_PATH_INVALID", exception.Code);
         }

@@ -41,7 +41,16 @@ The repository now includes:
 - Core/Application/Infrastructure/Architecture test projects.
 
 ## Validation boundary
-The current execution environment does not contain the .NET SDK, so C# restore/build/test cannot be executed here. The following validations can and have been performed independently:
+Windows CI is now part of the repository. On September 20, 2026, GitHub Actions on `windows-latest` with .NET 10 successfully completed:
+
+- `dotnet restore SpriteForge.sln`;
+- Release x64 solution build, including WinUI/XAML compilation;
+- Core tests;
+- Application tests;
+- Infrastructure tests;
+- Architecture tests.
+
+The implementation pass also completed:
 
 - XAML, project files, props, and manifest-style XML parsing;
 - XAML event-handler existence checks;
@@ -51,4 +60,4 @@ The current execution environment does not contain the .NET SDK, so C# restore/b
 - Python worker `py_compile`;
 - FFmpeg presence and extraction smoke testing.
 
-A Windows environment with .NET 10 and WinUI tooling remains the release gate for `dotnet restore`, `dotnet build`, `dotnet test`, application launch, and end-to-end V1 acceptance testing.
+The remaining release validation is runtime application launch and the end-to-end V1 workflow with real media, FFmpeg, and the local `rembg` worker on a Windows desktop environment.

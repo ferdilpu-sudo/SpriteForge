@@ -32,13 +32,13 @@ public sealed class SourceImportServiceTests
                 project,
                 workspace,
                 [frame10, frame2],
-                CancellationToken.None);
+                TestContext.Current.CancellationToken);
 
             Assert.Equal(2, artifacts.Count);
             Assert.Equal(2, project.Frames.Count);
             Assert.Equal(0, project.Frames[0].SourceIndex);
             Assert.Equal(new byte[] { 2 }, await File.ReadAllBytesAsync(Path.Combine(workspace.RootPath, artifacts[0].RelativePath)));
-            Assert.All(artifacts, artifact => Assert.True(artifact.RelativePath.StartsWith("source", StringComparison.OrdinalIgnoreCase)));
+            Assert.All(artifacts, artifact => Assert.StartsWith("source", artifact.RelativePath, StringComparison.OrdinalIgnoreCase));
             Assert.Equal("frame_sequence", project.Source?.Kind);
         }
         finally
@@ -68,7 +68,7 @@ public sealed class SourceImportServiceTests
                 project,
                 new ProjectWorkspacePaths(root),
                 Path.Combine(root, "missing.mp4"),
-                CancellationToken.None));
+                TestContext.Current.CancellationToken));
 
             Assert.Equal(originalSource, project.Source);
             Assert.Equal(originalFrameId, project.Frames.Single().Id);
@@ -96,7 +96,7 @@ public sealed class SourceImportServiceTests
                 project,
                 new ProjectWorkspacePaths(Path.Combine(root, "project")),
                 sourcePath,
-                CancellationToken.None));
+                TestContext.Current.CancellationToken));
 
             Assert.Equal(existingSource, project.Source);
         }

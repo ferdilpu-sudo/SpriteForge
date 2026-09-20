@@ -46,7 +46,8 @@ public sealed class SkiaSharpFrameNormalizer : IFrameNormalizer
         var destinationRect = SKRect.Create(x, y, targetWidth, targetHeight);
 
         using var paint = new SKPaint { IsAntialias = true };
-        canvas.DrawBitmap(source, sourceRect, destinationRect, paint);
+        var sampling = new SKSamplingOptions(SKFilterMode.Nearest);
+        canvas.DrawBitmap(source, sourceRect, destinationRect, sampling, paint);
         canvas.Flush();
         cancellationToken.ThrowIfCancellationRequested();
 
