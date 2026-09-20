@@ -29,6 +29,7 @@ public partial class App : Microsoft.UI.Xaml.Application
         try
         {
             StartupLog.Write("Application launch entered.");
+            XamlStartupProbe.Run();
             var services = AppComposition.Build();
             _window = new MainWindow(services);
             _window.Activate();
