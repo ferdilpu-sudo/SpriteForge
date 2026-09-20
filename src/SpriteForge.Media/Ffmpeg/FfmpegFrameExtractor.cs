@@ -57,7 +57,7 @@ public sealed class FfmpegFrameExtractor(IExternalProcessRunner processRunner, s
 
         args.AddRange([
             "-vf", $"fps={request.Settings.Fps.ToString(System.Globalization.CultureInfo.InvariantCulture)}",
-            "-vsync", "0",
+            "-fps_mode", "passthrough",
             outputPattern
         ]);
         return args;
