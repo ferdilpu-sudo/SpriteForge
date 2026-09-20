@@ -44,7 +44,7 @@ jobs:
 
       - name: Restore
         shell: pwsh
-        run: dotnet restore SpriteForge.sln
+        run: dotnet restore SpriteForge.sln --configfile NuGet.config
 
       - name: Build solution
         shell: pwsh
