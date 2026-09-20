@@ -41,6 +41,10 @@ jobs:
         shell: pwsh
         run: dotnet build SpriteForge.sln -c Release -p:Platform=x64 --no-restore
 
+      - name: Install FFmpeg
+        shell: pwsh
+        run: choco install ffmpeg --version=9.0.1 -y --no-progress
+
       - name: Verify FFmpeg
         shell: pwsh
         run: ffmpeg -version
