@@ -12,7 +12,14 @@
                         <ScaleTransform x:Name="PreviewScale" ScaleX="1" ScaleY="1" />
                     </controls:FileImageControl.RenderTransform>
                 </controls:FileImageControl>
-                <TextBlock x:Name="Placeholder" Text="MAIN PREVIEW" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.45" FontWeight="SemiBold" />
+                <Border x:Name="Placeholder"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="#B3000000"
+                        CornerRadius="6"
+                        Padding="12,7">
+                    <TextBlock Text="PREVIEW" Foreground="White" FontWeight="SemiBold" />
+                </Border>
             </Grid>
         </Border>
     </Grid>

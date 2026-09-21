@@ -13,14 +13,14 @@ public sealed partial class ShellViewModel : ObservableObject
     {
         Stages = new ObservableCollection<PipelineStageItemViewModel>
         {
-            new(1, PipelineStage.Source, "Source", StageState.Active),
-            new(2, PipelineStage.Animate, "Animate", StageState.Neutral),
-            new(3, PipelineStage.Frames, "Frames", StageState.Neutral),
-            new(4, PipelineStage.Cutout, "Cutout", StageState.Neutral),
-            new(5, PipelineStage.Align, "Align", StageState.Neutral),
-            new(6, PipelineStage.Loop, "Loop", StageState.Neutral),
-            new(7, PipelineStage.Sheet, "Sheet", StageState.Neutral),
-            new(8, PipelineStage.Export, "Export", StageState.Neutral)
+            new(1, PipelineStage.Source, "Source", "Start here", StageState.Active),
+            new(2, PipelineStage.Animate, "Animate", "Optional", StageState.Neutral),
+            new(3, PipelineStage.Frames, "Frames", "Not started", StageState.Neutral),
+            new(4, PipelineStage.Cutout, "Cutout", "Not started", StageState.Neutral),
+            new(5, PipelineStage.Align, "Align", "Not started", StageState.Neutral),
+            new(6, PipelineStage.Loop, "Loop", "Not started", StageState.Neutral),
+            new(7, PipelineStage.Sheet, "Sheet", "Not started", StageState.Neutral),
+            new(8, PipelineStage.Export, "Export", "Not started", StageState.Neutral)
         };
         SelectedStage = Stages[0];
     }
@@ -34,12 +34,28 @@ public sealed partial class ShellViewModel : ObservableObject
     [ObservableProperty] private string projectPath = string.Empty;
     [ObservableProperty] private PipelineStageItemViewModel selectedStage;
     [ObservableProperty] private string sourceSummary = "No source imported";
-    [ObservableProperty] private string sourceKind = "None";
-    [ObservableProperty] private string? previewImagePath;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSource))]
+    private string sourceKind = "None";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPreview))]
+    [NotifyPropertyChangedFor(nameof(ZoomControlsOpacity))]
+    private string? previewImagePath;
+
     [ObservableProperty] private double previewFps = 12;
-    [ObservableProperty] private double previewZoom = 1;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PreviewZoomLabel))]
+    private double previewZoom = 1;
+
     [ObservableProperty] private bool loopEnabled = true;
-    [ObservableProperty] private FrameThumbnailViewModel? selectedFrame;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedFrame))]
+    private FrameThumbnailViewModel? selectedFrame;
+
     [ObservableProperty] private int currentFrameIndex;
     [ObservableProperty] private double selectedFrameDurationMs = 83.333;
     [ObservableProperty] private double selectedFramePivotX = 0.5;
@@ -75,6 +91,14 @@ public sealed partial class ShellViewModel : ObservableObject
     [ObservableProperty] private bool exportIndividualFrames;
     [ObservableProperty] private string exportSummary = "Nothing exported yet";
 
+    public bool HasSource => !string.Equals(SourceKind, "None", StringComparison.OrdinalIgnoreCase);
+    public bool HasFrames => Frames.Count > 0;
+    public bool HasSelectedFrame => SelectedFrame is not null;
+    public bool HasPreview => !string.IsNullOrWhiteSpace(PreviewImagePath);
+    public double PlaybackControlsOpacity => HasFrames ? 1d : 0.45d;
+    public double ZoomControlsOpacity => HasPreview ? 1d : 0.45d;
+    public string PreviewZoomLabel => $"{PreviewZoom * 100:0}%";
+
     public string FramePosition => Frames.Count == 0
         ? "No frames"
         : $"Frame {Math.Clamp(CurrentFrameIndex + 1, 1, Frames.Count)}/{Frames.Count}";
@@ -95,6 +119,9 @@ public sealed partial class ShellViewModel : ObservableObject
         foreach (var frame in frames.OrderBy(frame => frame.Order)) Frames.Add(frame);
         CurrentFrameIndex = Frames.Count == 0 ? 0 : Math.Clamp(CurrentFrameIndex, 0, Frames.Count - 1);
         SelectedFrame = Frames.Count == 0 ? null : Frames[CurrentFrameIndex];
+
+        OnPropertyChanged(nameof(HasFrames));
+        OnPropertyChanged(nameof(PlaybackControlsOpacity));
         OnPropertyChanged(nameof(FramePosition));
     }
 

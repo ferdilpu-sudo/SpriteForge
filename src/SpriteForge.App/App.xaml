@@ -1,12 +1,16 @@
 <Application
     x:Class="SpriteForge.App.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:SpriteForge.App.Converters">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
+
+            <converters:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:BooleanToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" Invert="True" />
 
             <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="20" />

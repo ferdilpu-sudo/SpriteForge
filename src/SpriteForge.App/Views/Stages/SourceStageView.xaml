@@ -11,26 +11,54 @@
         <Border Style="{StaticResource CardBorderStyle}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AllowDrop="True" DragOver="OnSourceDragOver" Drop="OnSourceDrop">
             <Grid>
                 <controls:CheckerboardControl ImagePath="{Binding PreviewImagePath}" Zoom="{Binding PreviewZoom}" />
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Spacing="8" Margin="24">
-                    <TextBlock Text="Drop an image, video, or frame sequence here" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
-                    <TextBlock Text="PNG · JPG · WebP · MP4 · WebM · MOV" Opacity="0.64" HorizontalAlignment="Center" />
-                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                        <Button Content="Choose image or video" Click="OnChooseSourceClick" Style="{StaticResource AccentButtonStyle}" />
-                        <Button Content="Import frame sequence" Click="OnImportSequenceClick" />
+
+                <Border HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="#D9000000"
+                        CornerRadius="10"
+                        Padding="22,18"
+                        Visibility="{Binding HasSource, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                    <StackPanel Spacing="9">
+                        <TextBlock Text="Import your source" Foreground="White" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                        <TextBlock Text="Drop an image, video, or frame sequence here" Foreground="White" Opacity="0.88" HorizontalAlignment="Center" />
+                        <TextBlock Text="PNG · JPG · WebP · MP4 · WebM · MOV" Foreground="White" Opacity="0.68" HorizontalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,4,0,0">
+                            <Button Content="Choose source" Click="OnChooseSourceClick" Style="{StaticResource AccentButtonStyle}" />
+                            <Button Content="Import frame sequence" Click="OnImportSequenceClick" />
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
+                </Border>
+
+                <Button Content="Replace source"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="14"
+                        Click="OnChooseSourceClick"
+                        Visibility="{Binding HasSource, Converter={StaticResource BoolToVisibilityConverter}}" />
             </Grid>
         </Border>
+
         <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
-            <StackPanel Spacing="12">
-                <TextBlock Text="SOURCE" Style="{StaticResource InspectorTitleStyle}" />
-                <TextBlock Text="Selected asset" Style="{StaticResource SectionTitleStyle}" />
-                <TextBlock Text="Type" Opacity="0.62" />
-                <TextBlock Text="{Binding SourceKind}" />
-                <TextBlock Text="Source" Opacity="0.62" />
-                <TextBlock Text="{Binding SourceSummary}" TextWrapping="Wrap" />
-                <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Non-destructive import" Message="SpriteForge copies imported assets into the project workspace and never edits the original file." />
-            </StackPanel>
+            <Grid>
+                <StackPanel Spacing="10"
+                            Visibility="{Binding HasSource, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                    <TextBlock Text="SOURCE" Style="{StaticResource InspectorTitleStyle}" />
+                    <TextBlock Text="No source selected" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="Import an image, video, or frame sequence to begin the sprite pipeline." TextWrapping="Wrap" Opacity="0.68" />
+                    <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Non-destructive" Message="Imported assets are copied into the project workspace. Originals are never edited." />
+                </StackPanel>
+
+                <StackPanel Spacing="12"
+                            Visibility="{Binding HasSource, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="SOURCE" Style="{StaticResource InspectorTitleStyle}" />
+                    <TextBlock Text="Selected asset" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="Type" Opacity="0.62" />
+                    <TextBlock Text="{Binding SourceKind}" />
+                    <TextBlock Text="Source" Opacity="0.62" />
+                    <TextBlock Text="{Binding SourceSummary}" TextWrapping="Wrap" />
+                    <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Non-destructive" Message="The imported source is copied into this project. Your original file remains untouched." />
+                </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>
