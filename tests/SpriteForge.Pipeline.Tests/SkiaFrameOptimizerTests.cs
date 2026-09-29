@@ -7,7 +7,7 @@ namespace SpriteForge.Pipeline.Tests;
 public sealed class SkiaFrameOptimizerTests
 {
     [Fact]
-    public async Task Balanced_RemovesRepeatedFrames_AndPreservesTotalDuration()
+    public async Task Balanced_CollapsesStaticHolds_AndPreservesTotalDuration()
     {
         var root = CreateTempDirectory();
         try
@@ -23,12 +23,54 @@ public sealed class SkiaFrameOptimizerTests
                 null,
                 TestContext.Current.CancellationToken);
 
-            Assert.InRange(result.EnabledCount, 8, 12);
-            Assert.True(result.EnabledCount < paths.Count);
+            Assert.Equal(colors.Length, result.EnabledCount);
             Assert.True(result.Decisions[0].Enabled);
-            Assert.True(result.Decisions[^1].Enabled);
-            var totalDuration = result.Decisions.Where(decision => decision.Enabled).Sum(decision => decision.DurationMs);
+            Assert.True(result.Decisions[4].Enabled);
+            Assert.True(result.Decisions[8].Enabled);
+            Assert.True(result.Decisions[12].Enabled);
+            Assert.True(result.Decisions[16].Enabled);
+
+            var totalDuration = result.Decisions
+                .Where(decision => decision.Enabled)
+                .Sum(decision => decision.DurationMs);
             Assert.Equal(paths.Count * 80d, totalDuration, precision: 6);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Balanced_DoesNotForceFramesIntoStaticTail()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var paths = new List<string>();
+            for (var index = 0; index < 24; index++)
+            {
+                var color = index switch
+                {
+                    < 6 => SKColors.Navy,
+                    6 => SKColors.DarkRed,
+                    7 => SKColors.OrangeRed,
+                    8 => SKColors.Gold,
+                    9 => SKColors.Green,
+                    10 => SKColors.Blue,
+                    _ => SKColors.Blue
+                };
+                paths.Add(CreateSolidFrame(root, index, color));
+            }
+
+            var result = await new SkiaFrameOptimizer().OptimizeAsync(
+                new FrameOptimizationRequest(paths, 80, FrameOptimizationSettings.BalancedDefault),
+                null,
+                TestContext.Current.CancellationToken);
+
+            var enabled = result.Decisions.Where(decision => decision.Enabled).Select(decision => decision.SourceIndex).ToArray();
+            Assert.DoesNotContain(enabled, index => index > 10);
+            Assert.True(enabled.Length <= 10);
         }
         finally
         {
