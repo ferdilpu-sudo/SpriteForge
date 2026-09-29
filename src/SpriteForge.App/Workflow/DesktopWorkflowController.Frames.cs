@@ -159,6 +159,30 @@ internal sealed partial class DesktopWorkflowController
         SelectFrame(_viewModel.Frames[safeIndex]);
     }
 
+    public IReadOnlyList<string> GetPreviewFramePaths()
+    {
+        if (_project is null || _viewModel.Frames.Count == 0)
+            return [];
+
+        IReadOnlyList<FrameRecord> sequence;
+        try
+        {
+            sequence = _services.Pipeline.GetExportSequence(CurrentProject);
+        }
+        catch
+        {
+            return [];
+        }
+
+        return sequence
+            .Select(frame => _viewModel.Frames.FirstOrDefault(
+                viewModel => viewModel.FrameId == frame.Id)?.PreviewPath)
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Cast<string>()
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
     public bool AdvancePreview(bool loopEnabled)
     {
         if (_project is null || _viewModel.Frames.Count == 0) return false;
