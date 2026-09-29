@@ -21,7 +21,7 @@
                     <TextBlock Text="Export files" Style="{StaticResource SectionTitleStyle}" />
                     <TextBlock Text="Export name"/><TextBox Text="{Binding ExportName, Mode=TwoWay}" />
                     <TextBlock Text="Destination"/>
-                    <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBox Text="{Binding ExportDestination, Mode=TwoWay}" IsReadOnly="True" TextTrimming="CharacterEllipsis"/><Button Grid.Column="1" Content="Browse" Click="OnBrowseClick" /></Grid>
+                    <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBox Text="{Binding ExportDestination, Mode=TwoWay}" IsReadOnly="True"/><Button Grid.Column="1" Content="Browse" Click="OnBrowseClick" /></Grid>
                     <CheckBox Content="Sprite sheet PNG" IsChecked="True" IsEnabled="False" />
                     <CheckBox Content="Metadata JSON" IsChecked="True" IsEnabled="False" />
                     <CheckBox Content="Individual PNG frames" IsChecked="{Binding ExportIndividualFrames, Mode=TwoWay}" />
