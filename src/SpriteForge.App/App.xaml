@@ -28,6 +28,12 @@
                 <Setter Property="CornerRadius" Value="8" />
                 <Setter Property="Padding" Value="16" />
             </Style>
+            <Style x:Key="InspectorScrollViewerStyle" TargetType="ScrollViewer">
+                <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+                <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+                <Setter Property="VerticalScrollMode" Value="Auto" />
+                <Setter Property="HorizontalScrollMode" Value="Disabled" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

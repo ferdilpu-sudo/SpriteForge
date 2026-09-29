@@ -3,10 +3,10 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:SpriteForge.App.Controls">
-    <Grid ColumnSpacing="12" Padding="14">
+    <Grid ColumnSpacing="12" Padding="14" MinHeight="0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="320" />
         </Grid.ColumnDefinitions>
         <Border Style="{StaticResource CardBorderStyle}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AllowDrop="True" DragOver="OnSourceDragOver" Drop="OnSourceDrop">
             <Grid>
@@ -38,27 +38,29 @@
             </Grid>
         </Border>
 
-        <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
-            <Grid>
-                <StackPanel Spacing="10"
-                            Visibility="{Binding HasSource, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                    <TextBlock Text="SOURCE" Style="{StaticResource InspectorTitleStyle}" />
-                    <TextBlock Text="No source selected" Style="{StaticResource SectionTitleStyle}" />
-                    <TextBlock Text="Import an image, video, or frame sequence to begin the sprite pipeline." TextWrapping="Wrap" Opacity="0.68" />
-                    <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Non-destructive" Message="Imported assets are copied into the project workspace. Originals are never edited." />
-                </StackPanel>
+        <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}" MinHeight="0">
+            <ScrollViewer Style="{StaticResource InspectorScrollViewerStyle}">
+                <Grid>
+                    <StackPanel Spacing="10"
+                                Visibility="{Binding HasSource, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                        <TextBlock Text="SOURCE" Style="{StaticResource InspectorTitleStyle}" />
+                        <TextBlock Text="No source selected" Style="{StaticResource SectionTitleStyle}" />
+                        <TextBlock Text="Import an image, video, or frame sequence to begin the sprite pipeline." TextWrapping="Wrap" Opacity="0.68" />
+                        <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Non-destructive" Message="Imported assets are copied into the project workspace. Originals are never edited." />
+                    </StackPanel>
 
-                <StackPanel Spacing="12"
-                            Visibility="{Binding HasSource, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <TextBlock Text="SOURCE" Style="{StaticResource InspectorTitleStyle}" />
-                    <TextBlock Text="Selected asset" Style="{StaticResource SectionTitleStyle}" />
-                    <TextBlock Text="Type" Opacity="0.62" />
-                    <TextBlock Text="{Binding SourceKind}" />
-                    <TextBlock Text="Source" Opacity="0.62" />
-                    <TextBlock Text="{Binding SourceSummary}" TextWrapping="Wrap" />
-                    <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Non-destructive" Message="The imported source is copied into this project. Your original file remains untouched." />
-                </StackPanel>
-            </Grid>
+                    <StackPanel Spacing="12"
+                                Visibility="{Binding HasSource, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="SOURCE" Style="{StaticResource InspectorTitleStyle}" />
+                        <TextBlock Text="Selected asset" Style="{StaticResource SectionTitleStyle}" />
+                        <TextBlock Text="Type" Opacity="0.62" />
+                        <TextBlock Text="{Binding SourceKind}" />
+                        <TextBlock Text="Source" Opacity="0.62" />
+                        <TextBlock Text="{Binding SourceSummary}" TextWrapping="Wrap" />
+                        <InfoBar IsOpen="True" IsClosable="False" Severity="Informational" Title="Non-destructive" Message="The imported source is copied into this project. Your original file remains untouched." />
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
         </Border>
     </Grid>
 </UserControl>

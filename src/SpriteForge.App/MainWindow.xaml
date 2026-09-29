@@ -15,10 +15,16 @@
                 <Button Content="Open" Click="OnOpenProjectClick" />
                 <Button Content="Save" Click="OnSaveProjectClick" />
             </StackPanel>
-            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="18,0,0,0">
-                <TextBlock Text="Project:" Opacity="0.58"/>
-                <TextBlock Text="{Binding ProjectName}" FontWeight="SemiBold" />
-            </StackPanel>
+            <Grid Grid.Column="2" Margin="18,0,12,0" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <TextBlock Text="Project:" Opacity="0.58" Margin="0,0,6,0"/>
+                <TextBlock Grid.Column="1"
+                           Text="{Binding ProjectName}"
+                           FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis"
+                           MaxLines="1"
+                           ToolTipService.ToolTip="{Binding ProjectName}" />
+            </Grid>
             <Button Grid.Column="3" Content="Diagnostics" VerticalAlignment="Center" Click="OnDiagnosticsClick" />
         </Grid>
 
@@ -34,7 +40,7 @@
                                 <TextBlock Text="{Binding Number}" VerticalAlignment="Center" Opacity="0.55" />
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
                                     <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding StateLabel}" FontSize="11" Opacity="0.62" />
+                                    <TextBlock Text="{Binding StateLabel}" FontSize="11" Opacity="0.62" TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
                                 <TextBlock Grid.Column="2" Text="{Binding StateGlyph}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="SemiBold" />
                             </Grid>
@@ -48,15 +54,23 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1" Grid.Column="1">
+        <Grid Grid.Row="1" Grid.Column="1" MinHeight="0">
             <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-            <ContentControl x:Name="StageHost" />
+            <ContentControl x:Name="StageHost" MinHeight="0" />
             <controls:FrameStripControl x:Name="FrameStrip" Grid.Row="1" DataContext="{Binding}" />
         </Grid>
 
         <Border Grid.Row="2" Grid.ColumnSpan="2" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="0,1,0,0" Background="{ThemeResource LayerFillColorDefaultBrush}">
             <Grid Padding="12,0" ColumnSpacing="12">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="190"/><ColumnDefinition Width="140"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="190"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
                 <Button x:Name="PreviewPlayButton" Content="▶" ToolTipService.ToolTip="Play preview" Click="OnPreviewPlayClick" IsEnabled="{Binding HasFrames}" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Opacity="{Binding PlaybackControlsOpacity}">
                     <TextBlock Text="{Binding PreviewFps}"/><TextBlock Text="FPS"/>
@@ -67,11 +81,22 @@
                     <TextBlock Text="{Binding PreviewZoomLabel}" Width="38" HorizontalAlignment="Right" />
                     <Slider Width="92" Minimum="0.25" Maximum="4" StepFrequency="0.25" Value="{Binding PreviewZoom, Mode=TwoWay}" IsEnabled="{Binding HasPreview}" />
                 </StackPanel>
-                <ProgressBar Grid.Column="4" Minimum="0" Maximum="1" Value="{Binding JobStatus.Progress}" VerticalAlignment="Center" />
-                <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding FramePosition}" />
-                    <TextBlock Text="{Binding JobStatus.Message}" Opacity="0.72" TextTrimming="CharacterEllipsis" />
-                </StackPanel>
+                <ProgressBar Grid.Column="4"
+                             Width="140"
+                             Minimum="0"
+                             Maximum="1"
+                             Value="{Binding JobStatus.Progress}"
+                             VerticalAlignment="Center"
+                             Visibility="{Binding JobStatus.IsRunning, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <Grid Grid.Column="5" MinWidth="0" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding FramePosition}" Margin="0,0,12,0" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding JobStatus.Message}"
+                               Opacity="0.72"
+                               TextTrimming="CharacterEllipsis"
+                               MaxLines="1" />
+                </Grid>
                 <Button Grid.Column="6" Content="Cancel" IsEnabled="{Binding JobStatus.CanCancel}" Click="OnCancelClick" />
             </Grid>
         </Border>
