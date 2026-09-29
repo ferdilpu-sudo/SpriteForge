@@ -24,36 +24,63 @@ public sealed class SheetLayoutCalculatorTests
     public void Calculate_ExcludesDisabledFrames()
     {
         var frames = new[] { Frame(0), Frame(1, enabled: false), Frame(2) };
-        var layout = new SheetLayoutCalculator().Calculate(frames, new SheetSettings(2, 32, 32, 0, 0, false));
+        var layout = new SheetLayoutCalculator().Calculate(
+            frames,
+            new SheetSettings(2, 32, 32, 0, 0, false));
 
         Assert.Equal(2, layout.Cells.Count);
         Assert.DoesNotContain(layout.Cells, cell => cell.FrameId == frames[1].Id);
     }
 
     [Fact]
-    public void Calculate_ThrowsClearly_WhenSheetExceedsSafetyLimit()
+    public void Calculate_ThrowsClearly_WhenSheetExceedsDimensionLimit()
     {
         var frames = new[] { Frame(0), Frame(1) };
         var settings = new SheetSettings(2, 9_000, 64, 0, 0, false);
 
-        var exception = Assert.Throws<InvalidOperationException>(() => new SheetLayoutCalculator().Calculate(frames, settings));
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => new SheetLayoutCalculator().Calculate(frames, settings));
 
-        Assert.True(exception.Message.Contains("safety limit", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("safety limit", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Calculate_ThrowsClearly_WhenSheetExceedsMemoryLimit()
+    {
+        var frames = new[] { Frame(0) };
+        var settings = new SheetSettings(1, 12_000, 12_000, 0, 0, false);
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => new SheetLayoutCalculator().Calculate(frames, settings));
+
+        Assert.Contains("MiB", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("memory", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
     public void Calculate_ThrowsInsteadOfOverflowing_WhenDimensionsExceedIntegerRange()
     {
         var frames = new[] { Frame(0), Frame(1) };
-        var settings = new SheetSettings(2, int.MaxValue, 32, int.MaxValue, int.MaxValue, false);
+        var settings = new SheetSettings(
+            2,
+            int.MaxValue,
+            32,
+            int.MaxValue,
+            int.MaxValue,
+            false);
 
-        var exception = Assert.Throws<InvalidOperationException>(() => new SheetLayoutCalculator().Calculate(frames, settings));
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => new SheetLayoutCalculator().Calculate(frames, settings));
 
-        Assert.True(exception.Message.Contains("dimensions exceed", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("dimensions exceed", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     private static FrameRecord Frame(int index, bool enabled = true) => new(
-        Guid.NewGuid(), index, index, enabled, 83.333,
+        Guid.NewGuid(),
+        index,
+        index,
+        enabled,
+        83.333,
         new FrameArtifactLinks(null, null, null, null),
         new FrameTransform(0, 0, 1),
         new FramePivot(0.5, 1));

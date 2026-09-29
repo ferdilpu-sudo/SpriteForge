@@ -1,11 +1,14 @@
 using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Storage;
+using Windows.Storage.FileProperties;
 
 namespace SpriteForge.App.Controls;
 
 internal static class PreviewImageCache
 {
     private const int MaxEntries = 32;
+    private const int MaxDecodeDimension = 1_024;
+
     private static readonly Dictionary<string, Task<BitmapImage?>> Entries =
         new(StringComparer.OrdinalIgnoreCase);
     private static readonly Queue<string> InsertionOrder = new();
@@ -52,8 +55,10 @@ internal static class PreviewImageCache
         try
         {
             var file = await StorageFile.GetFileFromPathAsync(path);
+            var imageProperties = await file.Properties.GetImagePropertiesAsync();
             using var stream = await file.OpenAsync(FileAccessMode.Read);
-            var bitmap = new BitmapImage();
+
+            var bitmap = CreateDecodeCappedBitmap(imageProperties);
             await bitmap.SetSourceAsync(stream);
             return bitmap;
         }
@@ -65,6 +70,23 @@ internal static class PreviewImageCache
             }
             return null;
         }
+    }
+
+    private static BitmapImage CreateDecodeCappedBitmap(ImageProperties properties)
+    {
+        var bitmap = new BitmapImage();
+        if (properties.Width <= MaxDecodeDimension &&
+            properties.Height <= MaxDecodeDimension)
+        {
+            return bitmap;
+        }
+
+        if (properties.Width >= properties.Height)
+            bitmap.DecodePixelWidth = MaxDecodeDimension;
+        else
+            bitmap.DecodePixelHeight = MaxDecodeDimension;
+
+        return bitmap;
     }
 
     private static void Trim()
