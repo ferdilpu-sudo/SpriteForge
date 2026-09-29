@@ -57,6 +57,7 @@ internal static class AppComposition
         return new AppServices(
             projects,
             new SourceImportService(hashService, sourceAssetValidator),
+            new FramePruningService(),
             pipeline,
             new PipelineJobRunner(),
             new PipelineInvalidationService(),

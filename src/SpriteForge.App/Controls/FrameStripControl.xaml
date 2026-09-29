@@ -59,6 +59,8 @@
                             <DropDownButton.Flyout>
                                 <MenuFlyout>
                                     <MenuFlyoutItem Text="Reset sequence" Click="OnResetClick" />
+                                    <MenuFlyoutSeparator />
+                                    <MenuFlyoutItem Text="Delete disabled frames…" Click="OnDeleteDisabledClick" />
                                 </MenuFlyout>
                             </DropDownButton.Flyout>
                         </DropDownButton>
@@ -71,8 +73,12 @@
                           SelectedItem="{Binding SelectedFrame, Mode=TwoWay}"
                           SelectionMode="Single"
                           SelectionChanged="OnSelectionChanged"
+                          PointerWheelChanged="OnFrameListPointerWheelChanged"
                           ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                          ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                          ScrollViewer.HorizontalScrollMode="Enabled"
+                          ScrollViewer.IsHorizontalRailEnabled="True"
+                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                          ScrollViewer.VerticalScrollMode="Disabled">
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate><ItemsStackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
                     </ListView.ItemsPanel>

@@ -1,4 +1,5 @@
 using SpriteForge.Application.Fingerprints;
+using SpriteForge.Application.Frames;
 using SpriteForge.Application.Imports;
 using SpriteForge.Application.Pipeline;
 using SpriteForge.Application.Projects;
@@ -11,6 +12,7 @@ namespace SpriteForge.App.Composition;
 public sealed record AppServices(
     ProjectService Projects,
     SourceImportService SourceImports,
+    FramePruningService FramePruning,
     SpritePipelineService Pipeline,
     PipelineJobRunner Jobs,
     PipelineInvalidationService Invalidations,
