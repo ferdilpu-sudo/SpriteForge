@@ -43,6 +43,9 @@ internal sealed class DesktopPickerService(Window window)
     private void Initialize(object picker)
     {
         var hwnd = WindowNative.GetWindowHandle(window);
+        if (hwnd == IntPtr.Zero)
+            throw new InvalidOperationException("The main window is not ready for a file picker.");
+
         InitializeWithWindow.Initialize(picker, hwnd);
     }
 }

@@ -33,10 +33,11 @@ internal sealed partial class DesktopWorkflowController
 
     public async Task OpenProjectAsync()
     {
-        var projectFile = await _pickers.PickProjectAsync();
-        if (string.IsNullOrWhiteSpace(projectFile)) return;
         try
         {
+            var projectFile = await _pickers.PickProjectAsync();
+            if (string.IsNullOrWhiteSpace(projectFile)) return;
+
             var project = await _services.Projects.OpenAsync(projectFile).ConfigureAwait(true);
             var root = Path.GetDirectoryName(Path.GetFullPath(projectFile))
                 ?? throw new InvalidOperationException("Project file has no parent directory.");

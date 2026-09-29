@@ -59,9 +59,17 @@ public sealed partial class MainWindow : Window
     private async void OnOpenProjectClick(object sender, RoutedEventArgs e)
     {
         StopPreview();
-        await _workflow.OpenProjectAsync();
-        StageList.SelectedItem = ViewModel.SelectedStage;
-        ShowSelectedStage();
+
+        try
+        {
+            await _workflow.OpenProjectAsync();
+            StageList.SelectedItem = ViewModel.SelectedStage;
+            ShowSelectedStage();
+        }
+        catch (Exception ex)
+        {
+            ViewModel.JobStatus.Message = $"Open failed: {ex.Message}";
+        }
     }
 
     private async void OnSaveProjectClick(object sender, RoutedEventArgs e)
