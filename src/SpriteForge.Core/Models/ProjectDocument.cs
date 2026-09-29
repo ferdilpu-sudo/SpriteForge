@@ -22,6 +22,7 @@ public sealed class ProjectDocument
     public ProjectSource? Source { get; set; }
     public GenerationRecord? Generation { get; set; }
     public ExtractionSettings Extraction { get; set; } = new(12, 0, null);
+    public FrameOptimizationSettings FrameOptimization { get; set; } = FrameOptimizationSettings.BalancedDefault;
     public BackgroundRemovalSettings BackgroundRemoval { get; set; } = new(true, "local_default", 0.05);
     public NormalizationSettings Normalization { get; set; } = new(512, 512, "contain", "bottom_center", true);
     public LoopSettings Loop { get; set; } = new(true, null, null, false);

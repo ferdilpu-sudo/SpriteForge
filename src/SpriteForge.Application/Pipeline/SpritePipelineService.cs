@@ -8,6 +8,7 @@ namespace SpriteForge.Application.Pipeline;
 
 public sealed class SpritePipelineService(
     IFrameExtractor frameExtractor,
+    IFrameOptimizer frameOptimizer,
     IBackgroundRemovalService backgroundRemoval,
     IFrameNormalizer frameNormalizer,
     ILoopAnalyzer loopAnalyzer,
@@ -33,6 +34,15 @@ public sealed class SpritePipelineService(
                 progress,
                 cancellationToken).ConfigureAwait(false);
 
+            var sourceDurationMs = 1000d / result.Fps;
+            var optimization = await frameOptimizer.OptimizeAsync(
+                new FrameOptimizationRequest(result.FramePaths, sourceDurationMs, project.FrameOptimization),
+                progress: null,
+                cancellationToken).ConfigureAwait(false);
+            if (optimization.Decisions.Count != result.FramePaths.Count)
+                throw new InvalidOperationException("Frame optimizer returned an incomplete decision set.");
+            var decisions = optimization.Decisions.ToDictionary(decision => decision.SourceIndex);
+
             var stagedArtifacts = new List<ArtifactRecord>(result.FramePaths.Count);
             var stagedFrames = new List<FrameRecord>(result.FramePaths.Count);
             for (var index = 0; index < result.FramePaths.Count; index++)
@@ -46,12 +56,14 @@ public sealed class SpritePipelineService(
                     workspace,
                     cancellationToken).ConfigureAwait(false);
                 stagedArtifacts.Add(artifact);
+                if (!decisions.TryGetValue(index, out var decision))
+                    throw new InvalidOperationException($"Frame optimizer omitted source frame {index}.");
                 stagedFrames.Add(new FrameRecord(
                     Guid.NewGuid(),
                     index,
                     index,
-                    true,
-                    1000d / result.Fps,
+                    decision.Enabled,
+                    decision.DurationMs,
                     new FrameArtifactLinks(artifact.Id, null, null, null),
                     new FrameTransform(0, 0, 1),
                     new FramePivot(0.5, 1)));
@@ -62,6 +74,11 @@ public sealed class SpritePipelineService(
             project.Frames.Clear();
             project.Frames.AddRange(stagedFrames);
             ResetLoopSelection(project);
+            progress?.Report(new PipelineProgress(
+                1,
+                $"Extracted {stagedFrames.Count} frames · {optimization.EnabledCount} keyframes enabled",
+                optimization.EnabledCount,
+                stagedFrames.Count));
         }
         catch
         {

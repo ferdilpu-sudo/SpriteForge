@@ -17,8 +17,7 @@ internal sealed partial class DesktopWorkflowController
         InvalidateLoopAfterFrameEdit();
         await SaveAsync();
         RefreshViewModel();
-        _viewModel.SetStageState(PipelineStage.Loop, StageState.Stale);
-        MarkDownstreamStale(PipelineStage.Loop);
+        MarkDownstreamStale(PipelineStage.Frames);
     }
 
     public Task MoveSelectedFrameLeftAsync() => MoveSelectedFrameAsync(-1);
@@ -72,6 +71,7 @@ internal sealed partial class DesktopWorkflowController
                 {
                     Order = index,
                     Enabled = true,
+                    DurationMs = 1000d / Math.Max(0.01, CurrentProject.Extraction.Fps),
                     Artifacts = new FrameArtifactLinks(artifact.Id, null, null, null)
                 });
                 continue;
@@ -157,6 +157,30 @@ internal sealed partial class DesktopWorkflowController
         if (_viewModel.Frames.Count == 0) return;
         var safeIndex = Math.Clamp(index, 0, _viewModel.Frames.Count - 1);
         SelectFrame(_viewModel.Frames[safeIndex]);
+    }
+
+    public IReadOnlyList<string> GetPreviewFramePaths()
+    {
+        if (_project is null || _viewModel.Frames.Count == 0)
+            return [];
+
+        IReadOnlyList<FrameRecord> sequence;
+        try
+        {
+            sequence = _services.Pipeline.GetExportSequence(CurrentProject);
+        }
+        catch
+        {
+            return [];
+        }
+
+        return sequence
+            .Select(frame => _viewModel.Frames.FirstOrDefault(
+                viewModel => viewModel.FrameId == frame.Id)?.PreviewPath)
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Cast<string>()
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 
     public bool AdvancePreview(bool loopEnabled)

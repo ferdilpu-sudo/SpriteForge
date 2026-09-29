@@ -33,12 +33,28 @@ internal sealed partial class DesktopWorkflowController
         }
 
         project.Extraction = new ExtractionSettings(fps, startSeconds, endSeconds);
+        project.FrameOptimization = new FrameOptimizationSettings(
+            NormalizeFrameOptimizationMode(_viewModel.FrameOptimizationMode, project.FrameOptimization.Mode),
+            NormalizeFinite(
+                _viewModel.FrameSimilarityThreshold,
+                project.FrameOptimization.SimilarityThreshold,
+                0,
+                1),
+            _viewModel.PreserveMotionPeaks);
+
         _viewModel.PreviewFps = fps;
         _viewModel.ExtractionStartSeconds = startSeconds;
+        _viewModel.FrameOptimizationMode = project.FrameOptimization.Mode;
+        _viewModel.FrameSimilarityThreshold = project.FrameOptimization.SimilarityThreshold;
         if (endSeconds is { } end) _viewModel.ExtractionEndSeconds = end;
 
         var sourcePath = CurrentWorkspace.ResolveRelative(source.RelativePath);
-        var fingerprint = _services.Fingerprints.Compute("extract_frames", new { source.Sha256, project.Extraction });
+        var fingerprint = _services.Fingerprints.Compute("extract_frames", new
+        {
+            source.Sha256,
+            project.Extraction,
+            project.FrameOptimization
+        });
 
         await RunStageAsync(
             PipelineStage.Frames,

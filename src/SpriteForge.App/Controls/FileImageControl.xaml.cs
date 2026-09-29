@@ -1,13 +1,12 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media.Imaging;
-using Windows.Storage;
 
 namespace SpriteForge.App.Controls;
 
 public sealed partial class FileImageControl : UserControl
 {
     private long _loadVersion;
+
     public static readonly DependencyProperty ImagePathProperty = DependencyProperty.Register(
         nameof(ImagePath),
         typeof(string),
@@ -22,7 +21,9 @@ public sealed partial class FileImageControl : UserControl
         set => SetValue(ImagePathProperty, value);
     }
 
-    private static void OnImagePathChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
+    private static void OnImagePathChanged(
+        DependencyObject dependencyObject,
+        DependencyPropertyChangedEventArgs args)
     {
         if (dependencyObject is FileImageControl control)
             _ = control.LoadImageAsync(args.NewValue as string);
@@ -31,20 +32,17 @@ public sealed partial class FileImageControl : UserControl
     private async Task LoadImageAsync(string? path)
     {
         var loadVersion = Interlocked.Increment(ref _loadVersion);
-        ImageElement.Source = null;
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return;
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        {
+            ImageElement.Source = null;
+            return;
+        }
 
-        try
-        {
-            var file = await StorageFile.GetFileFromPathAsync(path);
-            using var stream = await file.OpenAsync(FileAccessMode.Read);
-            var bitmap = new BitmapImage();
-            await bitmap.SetSourceAsync(stream);
-            if (loadVersion == Volatile.Read(ref _loadVersion)) ImageElement.Source = bitmap;
-        }
-        catch
-        {
-            if (loadVersion == Volatile.Read(ref _loadVersion)) ImageElement.Source = null;
-        }
+        var bitmap = await PreviewImageCache.GetAsync(path);
+        if (loadVersion != Volatile.Read(ref _loadVersion))
+            return;
+
+        if (bitmap is not null)
+            ImageElement.Source = bitmap;
     }
 }

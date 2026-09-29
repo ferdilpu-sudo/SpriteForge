@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using SpriteForge.Core.Errors;
 using SpriteForge.Core.Models;
 
@@ -15,6 +16,11 @@ public sealed class ProjectDocumentValidator
         "top_left", "top_center", "top_right",
         "center_left", "center", "center_right",
         "bottom_left", "bottom_center", "bottom_right"
+    };
+
+    private static readonly HashSet<string> FrameOptimizationModes = new(StringComparer.Ordinal)
+    {
+        "raw", "compact", "balanced", "smooth"
     };
 
     public void Validate(ProjectDocument project)
@@ -44,6 +50,7 @@ public sealed class ProjectDocumentValidator
     private static void ValidateSettings(ProjectDocument project)
     {
         if (project.Extraction is null) Fail("Extraction settings are missing.");
+        if (project.FrameOptimization is null) Fail("Frame-optimization settings are missing.");
         if (project.BackgroundRemoval is null) Fail("Background-removal settings are missing.");
         if (project.Normalization is null) Fail("Normalization settings are missing.");
         if (project.Loop is null) Fail("Loop settings are missing.");
@@ -57,6 +64,12 @@ public sealed class ProjectDocumentValidator
         if (extraction.EndSeconds is { } end &&
             (!double.IsFinite(end) || end <= extraction.StartSeconds))
             Fail("Extraction end time must be greater than the start time.");
+
+        var optimization = project.FrameOptimization;
+        if (optimization.Mode is null || !FrameOptimizationModes.Contains(optimization.Mode))
+            Fail($"Unknown frame optimization mode '{optimization.Mode ?? "<null>"}'.");
+        if (!double.IsFinite(optimization.SimilarityThreshold) || optimization.SimilarityThreshold is < 0 or > 1)
+            Fail("Frame optimization similarity threshold must be between 0 and 1.");
 
         var background = project.BackgroundRemoval;
         if (string.IsNullOrWhiteSpace(background.ProcessorId))
@@ -170,6 +183,7 @@ public sealed class ProjectDocumentValidator
             Fail($"Frame {frameId} {label} link references a missing artifact.");
     }
 
+    [DoesNotReturn]
     private static void Fail(string message) =>
         throw new SpriteForgeException("PROJECT_INVALID", message, recoverable: false);
 }

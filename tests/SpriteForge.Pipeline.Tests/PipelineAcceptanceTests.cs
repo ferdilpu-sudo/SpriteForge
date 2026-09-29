@@ -13,6 +13,7 @@ using SpriteForge.Infrastructure.Processes;
 using SpriteForge.Media.Ffmpeg;
 using SpriteForge.Media.Looping;
 using SpriteForge.Media.Normalization;
+using SpriteForge.Media.Optimization;
 using SpriteForge.Media.Validation;
 
 namespace SpriteForge.Pipeline.Tests;
@@ -42,6 +43,7 @@ public sealed class PipelineAcceptanceTests
             {
                 Name = "Acceptance Fixture",
                 Extraction = new ExtractionSettings(6, 0, 1),
+                FrameOptimization = new FrameOptimizationSettings("raw", 0.96, true),
                 BackgroundRemoval = new BackgroundRemovalSettings(true, "test_synthetic_alpha", 0.05),
                 Normalization = new NormalizationSettings(64, 64, "contain", "bottom_center", true),
                 Sheet = new SheetSettings(3, 64, 64, 0, 0, false)
@@ -63,11 +65,21 @@ public sealed class PipelineAcceptanceTests
             Assert.Equal(6, project.Frames.Count);
 
             await pipeline.RemoveBackgroundsAsync(project, workspace, null, cancellationToken);
-            Assert.All(project.Frames, frame => Assert.NotNull(frame.Artifacts.Transparent));
+            Assert.All(
+                project.Frames.Where(frame => frame.Enabled),
+                frame => Assert.NotNull(frame.Artifacts.Transparent));
+            Assert.All(
+                project.Frames.Where(frame => !frame.Enabled),
+                frame => Assert.Null(frame.Artifacts.Transparent));
             Assert.True(ContainsTransparentPixel(project, workspace));
 
             await pipeline.NormalizeFramesAsync(project, workspace, null, cancellationToken);
-            Assert.All(project.Frames, frame => Assert.NotNull(frame.Artifacts.Normalized));
+            Assert.All(
+                project.Frames.Where(frame => frame.Enabled),
+                frame => Assert.NotNull(frame.Artifacts.Normalized));
+            Assert.All(
+                project.Frames.Where(frame => !frame.Enabled),
+                frame => Assert.Null(frame.Artifacts.Normalized));
 
             var candidates = await pipeline.AnalyzeLoopAsync(project, workspace, cancellationToken);
             Assert.NotEmpty(candidates);
@@ -139,6 +151,7 @@ public sealed class PipelineAcceptanceTests
         FileHashService hashService) =>
         new(
             new FfmpegFrameExtractor(processRunner),
+            new SkiaFrameOptimizer(),
             new SyntheticAlphaCutoutService(),
             new SkiaSharpFrameNormalizer(),
             new ImageDifferenceLoopAnalyzer(),

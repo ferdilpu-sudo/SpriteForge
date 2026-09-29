@@ -62,6 +62,16 @@ internal sealed partial class DesktopWorkflowController
         _viewModel.ExtractionStartSeconds = project.Extraction.StartSeconds;
         _viewModel.ExtractionHasEndTime = project.Extraction.EndSeconds.HasValue;
         _viewModel.ExtractionEndSeconds = project.Extraction.EndSeconds ?? Math.Max(3, project.Extraction.StartSeconds + 3);
+        _viewModel.FrameOptimizationMode = project.FrameOptimization.Mode;
+        _viewModel.FrameSimilarityThreshold = project.FrameOptimization.SimilarityThreshold;
+        _viewModel.PreserveMotionPeaks = project.FrameOptimization.PreserveMotionPeaks;
+        var enabledFrameCount = project.Frames.Count(frame => frame.Enabled);
+        var reduction = project.Frames.Count == 0
+            ? 0
+            : (1d - enabledFrameCount / (double)project.Frames.Count) * 100d;
+        _viewModel.FrameOptimizationSummary = project.Frames.Count == 0
+            ? "Optimization is applied during extraction"
+            : $"{enabledFrameCount}/{project.Frames.Count} frames enabled · {reduction:0.#}% reduction";
         _viewModel.BackgroundRemovalEnabled = project.BackgroundRemoval.Enabled;
         _viewModel.AlphaThreshold = project.BackgroundRemoval.AlphaThreshold;
         _viewModel.CanvasWidth = project.Normalization.CanvasWidth;

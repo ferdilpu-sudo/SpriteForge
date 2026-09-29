@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using SpriteForge.App.Composition;
+using SpriteForge.App.Controls;
 using SpriteForge.App.Workflow;
 using SpriteForge.Presentation.Shell;
 
@@ -12,6 +13,7 @@ public sealed partial class MainWindow : Window
     private readonly DesktopWorkflowController _workflow;
     private readonly DispatcherTimer _previewTimer = new();
     private bool _initialized;
+    private bool _previewStarting;
 
     public MainWindow(AppServices services)
     {
@@ -55,6 +57,7 @@ public sealed partial class MainWindow : Window
     private async void OnNewProjectClick(object sender, RoutedEventArgs e)
     {
         StopPreview();
+        PreviewImageCache.Clear();
         await _workflow.ExecuteUiOperationAsync("Create project", async () =>
         {
             await _workflow.CreateNewProjectAsync();
@@ -66,6 +69,7 @@ public sealed partial class MainWindow : Window
     private async void OnOpenProjectClick(object sender, RoutedEventArgs e)
     {
         StopPreview();
+        PreviewImageCache.Clear();
         await _workflow.ExecuteUiOperationAsync("Open project", async () =>
         {
             await _workflow.OpenProjectAsync();
@@ -114,7 +118,7 @@ public sealed partial class MainWindow : Window
         if (issues.Count > 0) ViewModel.JobStatus.Message = $"Local setup: {string.Join(" · ", issues)}";
     }
 
-    private void OnPreviewPlayClick(object sender, RoutedEventArgs e)
+    private async void OnPreviewPlayClick(object sender, RoutedEventArgs e)
     {
         if (_previewTimer.IsEnabled)
         {
@@ -122,9 +126,21 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        UpdatePreviewTimerInterval();
-        _previewTimer.Start();
-        PreviewPlayButton.Content = "❚❚";
+        if (_previewStarting) return;
+        _previewStarting = true;
+        try
+        {
+            await PreviewImageCache.PreloadAsync(
+                _workflow.GetPreviewFramePaths());
+
+            UpdatePreviewTimerInterval();
+            _previewTimer.Start();
+            PreviewPlayButton.Content = "❚❚";
+        }
+        finally
+        {
+            _previewStarting = false;
+        }
     }
 
     private void OnCancelClick(object sender, RoutedEventArgs e) => _workflow.CancelCurrentOperation();
