@@ -43,6 +43,7 @@ public sealed class PipelineAcceptanceTests
             {
                 Name = "Acceptance Fixture",
                 Extraction = new ExtractionSettings(6, 0, 1),
+                FrameOptimization = new FrameOptimizationSettings("raw", 0.96, true),
                 BackgroundRemoval = new BackgroundRemovalSettings(true, "test_synthetic_alpha", 0.05),
                 Normalization = new NormalizationSettings(64, 64, "contain", "bottom_center", true),
                 Sheet = new SheetSettings(3, 64, 64, 0, 0, false)
