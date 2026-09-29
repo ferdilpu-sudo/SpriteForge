@@ -83,12 +83,11 @@ jobs:
         run: .\scripts\package-rc.ps1 -Version 0.9.0-beta.1 -Channel beta
 
       - name: Upload beta artifact
-        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v7
         with:
+          name: SpriteForge-0.9.0-beta.1-win-x64
           path: |
             artifacts/SpriteForge-0.9.0-beta.1-win-x64.zip
             artifacts/SpriteForge-0.9.0-beta.1-win-x64.zip.sha256
-          archive: false
           if-no-files-found: error
           retention-days: 30
