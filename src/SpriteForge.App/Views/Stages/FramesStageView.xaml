@@ -20,9 +20,9 @@
                     <TextBlock Text="Frame optimization" Style="{StaticResource SectionTitleStyle}" />
                     <ComboBox SelectedValuePath="Tag" SelectedValue="{Binding FrameOptimizationMode, Mode=TwoWay}">
                         <ComboBoxItem Content="Raw · keep every frame" Tag="raw"/>
-                        <ComboBoxItem Content="Compact · 6–8 keyframes" Tag="compact"/>
-                        <ComboBoxItem Content="Balanced · 8–12 keyframes" Tag="balanced"/>
-                        <ComboBoxItem Content="Smooth · 12–18 keyframes" Tag="smooth"/>
+                        <ComboBoxItem Content="Compact · up to 7 keyframes" Tag="compact"/>
+                        <ComboBoxItem Content="Balanced · up to 10 keyframes" Tag="balanced"/>
+                        <ComboBoxItem Content="Smooth · up to 16 keyframes" Tag="smooth"/>
                     </ComboBox>
                     <NumberBox Header="Near-duplicate similarity"
                                Value="{Binding FrameSimilarityThreshold, Mode=TwoWay}"
