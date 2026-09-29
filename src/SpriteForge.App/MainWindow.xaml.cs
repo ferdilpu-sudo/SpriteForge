@@ -33,10 +33,14 @@ public sealed partial class MainWindow : Window
     {
         if (_initialized) return;
         _initialized = true;
-        await _workflow.InitializeAsync();
-        StageList.SelectedItem = ViewModel.SelectedStage;
-        ShowSelectedStage();
-        await RunStartupDiagnosticsAsync();
+
+        await _workflow.ExecuteUiOperationAsync("Initialize SpriteForge", async () =>
+        {
+            await _workflow.InitializeAsync();
+            StageList.SelectedItem = ViewModel.SelectedStage;
+            ShowSelectedStage();
+            await RunStartupDiagnosticsAsync();
+        });
     }
 
     private void OnStageSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -51,53 +55,49 @@ public sealed partial class MainWindow : Window
     private async void OnNewProjectClick(object sender, RoutedEventArgs e)
     {
         StopPreview();
-        await _workflow.CreateNewProjectAsync();
-        StageList.SelectedItem = ViewModel.SelectedStage;
-        ShowSelectedStage();
+        await _workflow.ExecuteUiOperationAsync("Create project", async () =>
+        {
+            await _workflow.CreateNewProjectAsync();
+            StageList.SelectedItem = ViewModel.SelectedStage;
+            ShowSelectedStage();
+        });
     }
 
     private async void OnOpenProjectClick(object sender, RoutedEventArgs e)
     {
         StopPreview();
-
-        try
+        await _workflow.ExecuteUiOperationAsync("Open project", async () =>
         {
             await _workflow.OpenProjectAsync();
             StageList.SelectedItem = ViewModel.SelectedStage;
             ShowSelectedStage();
-        }
-        catch (Exception ex)
-        {
-            ViewModel.JobStatus.Message = $"Open failed: {ex.Message}";
-        }
+        });
     }
 
     private async void OnSaveProjectClick(object sender, RoutedEventArgs e)
     {
-        try
+        await _workflow.ExecuteUiOperationAsync("Save project", async () =>
         {
             await _workflow.SaveAsync();
             ViewModel.JobStatus.Message = "Project saved";
-        }
-        catch (Exception ex)
-        {
-            ViewModel.JobStatus.Message = ex.Message;
-        }
+        });
     }
 
     private async void OnDiagnosticsClick(object sender, RoutedEventArgs e)
     {
-        ViewModel.JobStatus.Message = "Checking local dependencies…";
-        var ffmpeg = await _services.FfmpegDiagnostics.CheckAsync();
-        var background = await _services.BackgroundRemovalDiagnostics.CheckAsync();
-        var workspace = _workflow.Workspace is null
-            ? null
-            : await _services.WorkspaceDiagnostics.CheckWriteAccessAsync(_workflow.Workspace.RootPath);
-        var workspaceState = workspace is null ? "N/A" : workspace.Passed ? "OK" : "Read-only";
-        ViewModel.JobStatus.Message =
-            $"FFmpeg: {(ffmpeg.Passed ? "OK" : "Missing")} · Background: {(background.Passed ? "OK" : "Setup required")} · Workspace: {workspaceState}";
+        await _workflow.ExecuteUiOperationAsync("Run diagnostics", async () =>
+        {
+            ViewModel.JobStatus.Message = "Checking local dependencies…";
+            var ffmpeg = await _services.FfmpegDiagnostics.CheckAsync();
+            var background = await _services.BackgroundRemovalDiagnostics.CheckAsync();
+            var workspace = _workflow.Workspace is null
+                ? null
+                : await _services.WorkspaceDiagnostics.CheckWriteAccessAsync(_workflow.Workspace.RootPath);
+            var workspaceState = workspace is null ? "N/A" : workspace.Passed ? "OK" : "Read-only";
+            ViewModel.JobStatus.Message =
+                $"FFmpeg: {(ffmpeg.Passed ? "OK" : "Missing")} · Background: {(background.Passed ? "OK" : "Setup required")} · Workspace: {workspaceState}";
+        });
     }
-
 
     private async Task RunStartupDiagnosticsAsync()
     {
@@ -122,8 +122,7 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        var fps = Math.Clamp(ViewModel.PreviewFps, 0.25, 120);
-        _previewTimer.Interval = TimeSpan.FromSeconds(1d / fps);
+        UpdatePreviewTimerInterval();
         _previewTimer.Start();
         PreviewPlayButton.Content = "❚❚";
     }
@@ -132,11 +131,29 @@ public sealed partial class MainWindow : Window
 
     private void ConfigurePreviewTimer()
     {
-        _previewTimer.Interval = TimeSpan.FromMilliseconds(83);
+        UpdatePreviewTimerInterval();
         _previewTimer.Tick += (_, _) =>
         {
-            if (!_workflow.AdvancePreview(ViewModel.LoopEnabled)) StopPreview();
+            if (!_workflow.AdvancePreview(ViewModel.LoopEnabled))
+            {
+                StopPreview();
+                return;
+            }
+
+            UpdatePreviewTimerInterval();
         };
+    }
+
+    private void UpdatePreviewTimerInterval()
+    {
+        var durationMs = ViewModel.SelectedFrameDurationMs;
+        if (!double.IsFinite(durationMs) || durationMs <= 0)
+        {
+            var fps = Math.Clamp(ViewModel.PreviewFps, 0.25, 120);
+            durationMs = 1000d / fps;
+        }
+
+        _previewTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(durationMs, 8, 60_000));
     }
 
     private void StopPreview()

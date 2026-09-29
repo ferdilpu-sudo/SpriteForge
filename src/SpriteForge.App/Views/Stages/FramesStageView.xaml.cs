@@ -13,6 +13,7 @@ public sealed partial class FramesStageView : UserControl
 
     private async void OnExtractClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.ExtractFramesAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Extract frames", _workflow.ExtractFramesAsync);
     }
 }

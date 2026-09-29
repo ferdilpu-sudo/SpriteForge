@@ -13,6 +13,7 @@ public sealed partial class SheetStageView : UserControl
 
     private async void OnBuildClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.BuildSheetAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Build sheet", _workflow.BuildSheetAsync);
     }
 }

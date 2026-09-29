@@ -13,11 +13,13 @@ public sealed partial class AlignStageView : UserControl
 
     private async void OnApplyPivotClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.SetSelectedFramePivotAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Set frame pivot", _workflow.SetSelectedFramePivotAsync);
     }
 
     private async void OnApplyAllClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.NormalizeFramesAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Normalize frames", _workflow.NormalizeFramesAsync);
     }
 }

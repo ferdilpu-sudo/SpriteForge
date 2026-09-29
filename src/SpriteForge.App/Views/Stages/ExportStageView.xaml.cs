@@ -13,11 +13,13 @@ public sealed partial class ExportStageView : UserControl
 
     private async void OnBrowseClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.ChooseExportDestinationAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Choose export folder", _workflow.ChooseExportDestinationAsync);
     }
 
     private async void OnExportClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.ExportAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Export sprite", _workflow.ExportAsync);
     }
 }

@@ -13,6 +13,7 @@ public sealed partial class CutoutStageView : UserControl
 
     private async void OnProcessAllClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.RemoveBackgroundsAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Remove backgrounds", _workflow.RemoveBackgroundsAsync);
     }
 }

@@ -16,12 +16,14 @@ public sealed partial class SourceStageView : UserControl
 
     private async void OnChooseSourceClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.ImportSourceAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Import source", _workflow.ImportSourceAsync);
     }
 
     private async void OnImportSequenceClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.ImportFrameSequenceAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Import frame sequence", _workflow.ImportFrameSequenceAsync);
     }
 
     private void OnSourceDragOver(object sender, DragEventArgs e)
@@ -33,9 +35,18 @@ public sealed partial class SourceStageView : UserControl
 
     private async void OnSourceDrop(object sender, DragEventArgs e)
     {
-        if (_workflow is null || !e.DataView.Contains(StandardDataFormats.StorageItems)) return;
-        var items = await e.DataView.GetStorageItemsAsync();
-        var paths = items.OfType<StorageFile>().Select(file => file.Path).Where(path => !string.IsNullOrWhiteSpace(path)).ToArray();
-        await _workflow.ImportDroppedPathsAsync(paths);
+        if (_workflow is null) return;
+
+        await _workflow.ExecuteUiOperationAsync("Import dropped source", async () =>
+        {
+            if (!e.DataView.Contains(StandardDataFormats.StorageItems)) return;
+            var items = await e.DataView.GetStorageItemsAsync();
+            var paths = items
+                .OfType<StorageFile>()
+                .Select(file => file.Path)
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .ToArray();
+            await _workflow.ImportDroppedPathsAsync(paths);
+        });
     }
 }

@@ -13,6 +13,7 @@ public sealed partial class AnimateStageView : UserControl
 
     private async void OnImportVideoClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.ImportVideoInsteadAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Import video", _workflow.ImportVideoInsteadAsync);
     }
 }

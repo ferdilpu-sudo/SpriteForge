@@ -13,16 +13,19 @@ public sealed partial class LoopStageView : UserControl
 
     private async void OnAnalyzeClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.AnalyzeLoopAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Analyze loop", _workflow.AnalyzeLoopAsync);
     }
 
     private async void OnApplyManualClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.ApplyManualLoopAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Apply loop range", _workflow.ApplyManualLoopAsync);
     }
 
     private async void OnUseSuggestionClick(object sender, RoutedEventArgs e)
     {
-        if (_workflow is not null) await _workflow.UseSelectedLoopSuggestionAsync();
+        if (_workflow is null) return;
+        await _workflow.ExecuteUiOperationAsync("Apply loop suggestion", _workflow.UseSelectedLoopSuggestionAsync);
     }
 }
