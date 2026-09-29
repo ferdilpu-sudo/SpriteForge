@@ -15,13 +15,15 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
         Validate(request);
         var mode = request.Settings.Mode.Trim().ToLowerInvariant();
         var frameCount = request.FramePaths.Count;
+
         if (mode == "raw" || frameCount <= 1)
         {
             return BuildResult(
                 Enumerable.Range(0, frameCount).ToHashSet(),
                 new double[frameCount],
                 request.SourceFrameDurationMs,
-                frameCount);
+                frameCount,
+                normalizeTiming: false);
         }
 
         var differences = await AnalyzeDifferencesAsync(
@@ -58,7 +60,8 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
             selected,
             motionScores,
             request.SourceFrameDurationMs,
-            frameCount);
+            frameCount,
+            normalizeTiming: true);
     }
 
     private async Task<double[]> AnalyzeDifferencesAsync(
@@ -81,6 +84,7 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
                 index,
                 framePaths.Count - 1));
         }
+
         return differences;
     }
 
@@ -93,28 +97,34 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
     {
         var startAnchor = Math.Max(0, significant[0] - 1);
         var endAnchor = Math.Min(frameCount - 1, significant[^1] + 1);
-        var candidates = significant
+        var rangeLength = endAnchor - startAnchor + 1;
+        var target = Math.Min(maximumFrames, rangeLength);
+
+        var selected = significant
             .Append(startAnchor)
             .Append(endAnchor)
             .Distinct()
-            .OrderBy(index => index)
-            .ToArray();
+            .Where(index => index >= startAnchor && index <= endAnchor)
+            .ToHashSet();
 
-        var target = Math.Min(maximumFrames, candidates.Length);
-        if (candidates.Length <= target)
-            return candidates.ToHashSet();
-
-        var selected = new HashSet<int> { startAnchor, endAnchor };
-        var pool = significant
-            .Where(index => !selected.Contains(index))
-            .ToArray();
-        var remaining = Math.Max(0, target - selected.Count);
-
-        AddByCumulativeMotion(
-            selected,
-            pool,
-            differences,
-            remaining);
+        if (selected.Count > target)
+        {
+            selected = DownsampleMotion(
+                significant,
+                differences,
+                target,
+                startAnchor,
+                endAnchor);
+        }
+        else if (selected.Count < target)
+        {
+            AddTemporalCoverage(
+                selected,
+                startAnchor,
+                endAnchor,
+                target,
+                differences);
+        }
 
         if (preserveMotionPeak)
         {
@@ -126,6 +136,28 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
                 startAnchor,
                 endAnchor);
         }
+
+        return selected;
+    }
+
+    private static HashSet<int> DownsampleMotion(
+        IReadOnlyList<int> significant,
+        IReadOnlyList<double> differences,
+        int target,
+        int startAnchor,
+        int endAnchor)
+    {
+        var selected = new HashSet<int> { startAnchor, endAnchor };
+        var pool = significant
+            .Where(index => !selected.Contains(index))
+            .ToArray();
+        var remaining = Math.Max(0, target - selected.Count);
+
+        AddByCumulativeMotion(
+            selected,
+            pool,
+            differences,
+            remaining);
 
         return selected;
     }
@@ -151,17 +183,45 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
             cumulative[index] = total;
         }
 
+        var initialCount = selected.Count;
         for (var slot = 1; slot <= count; slot++)
         {
             var target = total * slot / (count + 1d);
-            var position = Array.FindIndex(cumulative, value => value >= target);
+            var position = Array.FindIndex(
+                cumulative,
+                value => value >= target);
             selected.Add(pool[position < 0 ? pool.Count - 1 : position]);
         }
 
         foreach (var index in pool.OrderByDescending(index => differences[index]))
         {
-            if (selected.Count >= count + 2) break;
+            if (selected.Count >= initialCount + count) break;
             selected.Add(index);
+        }
+    }
+
+    private static void AddTemporalCoverage(
+        HashSet<int> selected,
+        int startAnchor,
+        int endAnchor,
+        int targetCount,
+        IReadOnlyList<double> differences)
+    {
+        while (selected.Count < targetCount)
+        {
+            var candidate = Enumerable.Range(
+                    startAnchor,
+                    endAnchor - startAnchor + 1)
+                .Where(index => !selected.Contains(index))
+                .OrderByDescending(index =>
+                    selected.Min(existing => Math.Abs(existing - index)))
+                .ThenByDescending(index =>
+                    differences.Count > index ? differences[index] : 0)
+                .ThenBy(index => index)
+                .FirstOrDefault(-1);
+
+            if (candidate < 0) break;
+            selected.Add(candidate);
         }
     }
 
@@ -174,8 +234,11 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
         {
             var previous = index == 0 ? 0 : differences[index];
             var next = index + 1 < differences.Count ? differences[index + 1] : 0;
-            scores[index] = preserveMotionPeaks ? Math.Max(previous, next) : previous;
+            scores[index] = preserveMotionPeaks
+                ? Math.Max(previous, next)
+                : previous;
         }
+
         return scores;
     }
 
@@ -193,7 +256,9 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
         if (maximum <= median * 1.5 || maximum - median < 0.005)
             return configuredThreshold;
 
-        return Math.Max(0.005, median + (maximum - median) * 0.25);
+        return Math.Max(
+            0.005,
+            median + (maximum - median) * 0.25);
     }
 
     private static void PreserveStrongestPeak(
@@ -212,11 +277,16 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
         if (selected.Count >= targetCount)
         {
             var removable = selected
-                .Where(index => index != startAnchor && index != endAnchor)
+                .Where(index =>
+                    index != startAnchor &&
+                    index != endAnchor)
                 .OrderBy(index => differences[index])
-                .FirstOrDefault();
-            selected.Remove(removable);
+                .FirstOrDefault(-1);
+
+            if (removable >= 0)
+                selected.Remove(removable);
         }
+
         selected.Add(peak);
     }
 
@@ -224,21 +294,30 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
         IReadOnlySet<int> selected,
         IReadOnlyList<double> motionScores,
         double sourceDurationMs,
-        int frameCount)
+        int frameCount,
+        bool normalizeTiming)
     {
         var ordered = selected.OrderBy(index => index).ToArray();
         var durations = new Dictionary<int, double>(ordered.Length);
-        var sequenceEndExclusive = ordered.Length == 0
-            ? frameCount
-            : Math.Min(frameCount, ordered[^1] + 1);
 
-        for (var index = 0; index < ordered.Length; index++)
+        if (normalizeTiming && ordered.Length > 0)
         {
-            var current = ordered[index];
-            var next = index + 1 < ordered.Length
-                ? ordered[index + 1]
-                : sequenceEndExclusive;
-            durations[current] = Math.Max(1, next - current) * sourceDurationMs;
+            var activeFrameCount = ordered[^1] - ordered[0] + 1;
+            var duration = activeFrameCount * sourceDurationMs / ordered.Length;
+            foreach (var index in ordered)
+                durations[index] = duration;
+        }
+        else
+        {
+            for (var index = 0; index < ordered.Length; index++)
+            {
+                var current = ordered[index];
+                var next = index + 1 < ordered.Length
+                    ? ordered[index + 1]
+                    : frameCount;
+                durations[current] =
+                    Math.Max(1, next - current) * sourceDurationMs;
+            }
         }
 
         var decisions = new FrameOptimizationDecision[frameCount];
@@ -251,6 +330,7 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
                 enabled ? durations[index] : sourceDurationMs,
                 motionScores.Count > index ? motionScores[index] : 0);
         }
+
         return new FrameOptimizationResult(decisions);
     }
 
@@ -268,15 +348,18 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(request.Settings);
+
         if (request.FramePaths is null || request.FramePaths.Count == 0)
             throw new ArgumentException(
                 "At least one frame is required for optimization.",
                 nameof(request));
+
         if (!double.IsFinite(request.SourceFrameDurationMs) ||
             request.SourceFrameDurationMs <= 0)
             throw new ArgumentOutOfRangeException(
                 nameof(request),
                 "Source frame duration must be positive.");
+
         if (!double.IsFinite(request.Settings.SimilarityThreshold) ||
             request.Settings.SimilarityThreshold is < 0 or > 1)
             throw new ArgumentOutOfRangeException(
