@@ -7,7 +7,7 @@ namespace SpriteForge.Pipeline.Tests;
 public sealed class SkiaFrameOptimizerTests
 {
     [Fact]
-    public async Task Balanced_TrimsStaticHolds_AndPreservesActiveMotionTiming()
+    public async Task Balanced_FillsMotionRange_AndUsesEvenTiming()
     {
         var root = CreateTempDirectory();
         try
@@ -39,11 +39,15 @@ public sealed class SkiaFrameOptimizerTests
                 .Where(decision => decision.Enabled)
                 .ToArray();
 
-            Assert.Equal([3, 4, 8, 12, 16, 17], enabled.Select(x => x.SourceIndex));
-            Assert.Equal(80d, enabled[^1].DurationMs);
-
-            var totalDuration = enabled.Sum(decision => decision.DurationMs);
-            Assert.Equal(15 * 80d, totalDuration, precision: 6);
+            Assert.Equal(10, enabled.Length);
+            Assert.Equal(3, enabled[0].SourceIndex);
+            Assert.Equal(17, enabled[^1].SourceIndex);
+            Assert.All(enabled, decision =>
+                Assert.Equal(120d, decision.DurationMs, precision: 6));
+            Assert.Equal(
+                15 * 80d,
+                enabled.Sum(decision => decision.DurationMs),
+                precision: 6);
         }
         finally
         {
@@ -85,12 +89,14 @@ public sealed class SkiaFrameOptimizerTests
                 .Where(decision => decision.Enabled)
                 .ToArray();
 
+            Assert.Equal(7, enabled.Length);
             Assert.Equal(5, enabled[0].SourceIndex);
             Assert.Equal(11, enabled[^1].SourceIndex);
             Assert.All(enabled, decision =>
-                Assert.InRange(decision.SourceIndex, 5, 11));
-            Assert.Equal(80d, enabled[^1].DurationMs);
-            Assert.Equal(7 * 80d, enabled.Sum(decision => decision.DurationMs), precision: 6);
+            {
+                Assert.InRange(decision.SourceIndex, 5, 11);
+                Assert.Equal(80d, decision.DurationMs, precision: 6);
+            });
         }
         finally
         {
@@ -110,6 +116,7 @@ public sealed class SkiaFrameOptimizerTests
                     index,
                     SKColors.CornflowerBlue))
                 .ToArray();
+
             var result = await new SkiaFrameOptimizer().OptimizeAsync(
                 new FrameOptimizationRequest(
                     paths,
