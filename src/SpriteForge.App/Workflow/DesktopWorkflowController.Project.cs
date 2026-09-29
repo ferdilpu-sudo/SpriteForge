@@ -33,16 +33,22 @@ internal sealed partial class DesktopWorkflowController
 
     public async Task OpenProjectAsync()
     {
+        var projectFile = await _pickers.PickProjectAsync();
+        if (string.IsNullOrWhiteSpace(projectFile)) return;
+
+        var project = await _services.Projects.OpenAsync(projectFile).ConfigureAwait(true);
+        var root = Path.GetDirectoryName(Path.GetFullPath(projectFile))
+            ?? throw new InvalidOperationException("Project file has no parent directory.");
+        var workspace = new ProjectWorkspacePaths(root);
+        _services.Workspace.EnsureCreated(workspace);
+
+        var previousProject = _project;
+        var previousWorkspace = _workspace;
+        var previousProjectFile = _projectFile;
+        var previousExportDestination = _viewModel.ExportDestination;
+
         try
         {
-            var projectFile = await _pickers.PickProjectAsync();
-            if (string.IsNullOrWhiteSpace(projectFile)) return;
-
-            var project = await _services.Projects.OpenAsync(projectFile).ConfigureAwait(true);
-            var root = Path.GetDirectoryName(Path.GetFullPath(projectFile))
-                ?? throw new InvalidOperationException("Project file has no parent directory.");
-            var workspace = new ProjectWorkspacePaths(root);
-            _services.Workspace.EnsureCreated(workspace);
             _project = project;
             _workspace = workspace;
             _projectFile = projectFile;
@@ -50,9 +56,26 @@ internal sealed partial class DesktopWorkflowController
             RefreshViewModel();
             _viewModel.JobStatus.Message = "Project opened";
         }
-        catch (Exception ex)
+        catch
         {
-            ShowError(ex);
+            _project = previousProject;
+            _workspace = previousWorkspace;
+            _projectFile = previousProjectFile;
+            _viewModel.ExportDestination = previousExportDestination;
+
+            if (_project is not null && _workspace is not null)
+            {
+                try
+                {
+                    RefreshViewModel();
+                }
+                catch
+                {
+                    // Preserve the original open failure; the UI boundary logs it.
+                }
+            }
+
+            throw;
         }
     }
 
