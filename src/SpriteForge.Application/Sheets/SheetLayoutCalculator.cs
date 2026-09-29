@@ -106,7 +106,7 @@ public sealed class SheetLayoutCalculator
         var limitMiB = MaxEstimatedRgbaBytes / (1024d * 1024d);
         throw new InvalidOperationException(
             $"Sprite sheet {width}×{height} requires about {estimatedMiB:0} MiB " +
-            $"for one RGBA bitmap, above the {limitMiB:0} MiB safety limit. " +
+            $"for one RGBA bitmap, above the {limitMiB:0} MiB memory safety limit. " +
             "Use fewer columns, smaller cells, or fewer frames.");
     }
 
