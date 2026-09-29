@@ -5,6 +5,7 @@ namespace SpriteForge.Media.Optimization;
 internal sealed class FrameDifferenceAnalyzer
 {
     private const int SampleSize = 64;
+    private const double FocusFraction = 0.25;
 
     public Task<double> DifferenceAsync(string firstPath, string secondPath, CancellationToken cancellationToken) =>
         Task.Run(() => DifferenceCore(firstPath, secondPath, cancellationToken), cancellationToken);
@@ -14,8 +15,8 @@ internal sealed class FrameDifferenceAnalyzer
         using var first = LoadSample(firstPath);
         using var second = LoadSample(secondPath);
 
-        long total = 0;
-        var sampleCount = SampleSize * SampleSize * 4;
+        var pixelDifferences = new double[SampleSize * SampleSize];
+        var offset = 0;
         for (var y = 0; y < SampleSize; y++)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -23,14 +24,22 @@ internal sealed class FrameDifferenceAnalyzer
             {
                 var a = first.GetPixel(x, y);
                 var b = second.GetPixel(x, y);
-                total += Math.Abs(a.Red - b.Red);
-                total += Math.Abs(a.Green - b.Green);
-                total += Math.Abs(a.Blue - b.Blue);
-                total += Math.Abs(a.Alpha - b.Alpha);
+                pixelDifferences[offset++] =
+                    (Math.Abs(a.Red - b.Red) +
+                     Math.Abs(a.Green - b.Green) +
+                     Math.Abs(a.Blue - b.Blue) +
+                     Math.Abs(a.Alpha - b.Alpha)) / (4d * 255d);
             }
         }
 
-        return total / (sampleCount * 255d);
+        Array.Sort(pixelDifferences);
+        var focusCount = Math.Max(1, (int)Math.Ceiling(pixelDifferences.Length * FocusFraction));
+        var start = pixelDifferences.Length - focusCount;
+        double total = 0;
+        for (var index = start; index < pixelDifferences.Length; index++)
+            total += pixelDifferences[index];
+
+        return total / focusCount;
     }
 
     private static SKBitmap LoadSample(string path)
