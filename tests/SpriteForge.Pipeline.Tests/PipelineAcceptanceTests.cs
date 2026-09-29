@@ -13,6 +13,7 @@ using SpriteForge.Infrastructure.Processes;
 using SpriteForge.Media.Ffmpeg;
 using SpriteForge.Media.Looping;
 using SpriteForge.Media.Normalization;
+using SpriteForge.Media.Optimization;
 using SpriteForge.Media.Validation;
 
 namespace SpriteForge.Pipeline.Tests;
@@ -139,6 +140,7 @@ public sealed class PipelineAcceptanceTests
         FileHashService hashService) =>
         new(
             new FfmpegFrameExtractor(processRunner),
+            new SkiaFrameOptimizer(),
             new SyntheticAlphaCutoutService(),
             new SkiaSharpFrameNormalizer(),
             new ImageDifferenceLoopAnalyzer(),

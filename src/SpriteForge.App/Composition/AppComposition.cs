@@ -17,6 +17,7 @@ using SpriteForge.Media.BackgroundRemoval;
 using SpriteForge.Media.Ffmpeg;
 using SpriteForge.Media.Looping;
 using SpriteForge.Media.Normalization;
+using SpriteForge.Media.Optimization;
 using SpriteForge.Media.Validation;
 
 namespace SpriteForge.App.Composition;
@@ -42,6 +43,7 @@ internal static class AppComposition
 
         var pipeline = new SpritePipelineService(
             new FfmpegFrameExtractor(processRunner),
+            new SkiaFrameOptimizer(),
             new BackgroundRemovalWorker(processRunner, workerPython, workerScript),
             new SkiaSharpFrameNormalizer(),
             new ImageDifferenceLoopAnalyzer(),

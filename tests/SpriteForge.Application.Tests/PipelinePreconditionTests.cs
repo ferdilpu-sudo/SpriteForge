@@ -44,6 +44,7 @@ public sealed class PipelinePreconditionTests
 
     private static SpritePipelineService CreateService() => new(
         new UnexpectedFrameExtractor(),
+        new UnexpectedFrameOptimizer(),
         new UnexpectedBackgroundRemovalService(),
         new UnexpectedFrameNormalizer(),
         new UnexpectedLoopAnalyzer(),
@@ -68,6 +69,15 @@ public sealed class PipelinePreconditionTests
     {
         public Task<FrameExtractionResult> ExtractAsync(FrameExtractionRequest request, IProgress<PipelineProgress>? progress, CancellationToken cancellationToken) =>
             throw new InvalidOperationException("Frame extractor should not be called by this test.");
+    }
+
+    private sealed class UnexpectedFrameOptimizer : IFrameOptimizer
+    {
+        public Task<FrameOptimizationResult> OptimizeAsync(
+            FrameOptimizationRequest request,
+            IProgress<PipelineProgress>? progress,
+            CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("Frame optimizer should not be called by this test.");
     }
 
     private sealed class UnexpectedBackgroundRemovalService : IBackgroundRemovalService
