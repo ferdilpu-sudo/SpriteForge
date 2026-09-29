@@ -35,9 +35,16 @@ internal sealed class FrameDifferenceAnalyzer
 
     private static SKBitmap LoadSample(string path)
     {
-        using var source = SKBitmap.Decode(path)
+        var encodedBytes = File.ReadAllBytes(path);
+        using var encodedStream = new MemoryStream(encodedBytes, writable: false);
+        using var source = SKBitmap.Decode(encodedStream)
             ?? throw new InvalidDataException($"Unable to decode frame '{path}'.");
-        var sample = new SKBitmap(new SKImageInfo(64, 64, SKColorType.Rgba8888, SKAlphaType.Premul));
+
+        var sample = new SKBitmap(new SKImageInfo(
+            SampleSize,
+            SampleSize,
+            SKColorType.Rgba8888,
+            SKAlphaType.Premul));
         using var canvas = new SKCanvas(sample);
         canvas.Clear(SKColors.Transparent);
         using var paint = new SKPaint { IsAntialias = true };
