@@ -279,39 +279,6 @@ internal sealed partial class DesktopWorkflowController
     private ProjectDocument CurrentProject => _project ?? throw new InvalidOperationException("No project is open.");
     private ProjectWorkspacePaths CurrentWorkspace => _workspace ?? throw new InvalidOperationException("No project workspace is open.");
 
-    private static int NormalizeDimension(double value, int fallback)
-    {
-        var safe = double.IsFinite(value) && value >= 1 ? value : Math.Max(1, fallback);
-        return Math.Clamp((int)Math.Round(safe), 1, 16_384);
-    }
-
-    private static string NormalizeFit(string? value, string? fallback = null)
-    {
-        var normalized = value?.Trim().ToLowerInvariant();
-        if (normalized is "contain" or "cover" or "original") return normalized;
-
-        var normalizedFallback = fallback?.Trim().ToLowerInvariant();
-        return normalizedFallback is "contain" or "cover" or "original"
-            ? normalizedFallback
-            : "contain";
-    }
-
-    private static string NormalizeAnchor(string? value, string? fallback = null)
-    {
-        static string? Canonicalize(string? candidate)
-        {
-            var normalized = candidate?.Trim().ToLowerInvariant().Replace(' ', '_');
-            return normalized is
-                "top_left" or "top_center" or "top_right" or
-                "center_left" or "center" or "center_right" or
-                "bottom_left" or "bottom_center" or "bottom_right"
-                ? normalized
-                : null;
-        }
-
-        return Canonicalize(value) ?? Canonicalize(fallback) ?? "bottom_center";
-    }
-
     private static string MakeSafeExportName(string value)
     {
         var invalid = Path.GetInvalidFileNameChars().ToHashSet();

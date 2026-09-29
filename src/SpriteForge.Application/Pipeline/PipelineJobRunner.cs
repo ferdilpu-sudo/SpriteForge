@@ -44,13 +44,21 @@ public sealed class PipelineJobRunner
         catch (SpriteForgeException ex)
         {
             job.Status = JobStatus.Failed;
-            job.Error = new PipelineError(ex.Code, ex.Message, ex.InnerException?.Message, ex.Recoverable);
+            job.Error = new PipelineError(
+                ex.Code,
+                ex.Message,
+                ex.InnerException is null ? BuildTechnicalDetail(ex) : BuildTechnicalDetail(ex.InnerException),
+                ex.Recoverable);
             throw;
         }
         catch (Exception ex)
         {
             job.Status = JobStatus.Failed;
-            job.Error = new PipelineError("PIPELINE_STAGE_FAILED", "The processing stage failed.", ex.Message, true);
+            job.Error = new PipelineError(
+                "PIPELINE_STAGE_FAILED",
+                "The processing stage failed.",
+                BuildTechnicalDetail(ex),
+                true);
             throw;
         }
         finally
@@ -68,5 +76,17 @@ public sealed class PipelineJobRunner
                 }
             }
         }
+    }
+
+    private static string BuildTechnicalDetail(Exception exception)
+    {
+        var parts = new List<string>();
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            parts.Add(
+                $"{current.GetType().FullName} (0x{current.HResult:X8}): {current.Message}");
+        }
+
+        return string.Join(" --> ", parts);
     }
 }

@@ -72,7 +72,7 @@ internal sealed partial class DesktopWorkflowController
                 {
                     Order = index,
                     Enabled = true,
-                    Artifacts = frame.Artifacts with { Extracted = artifact.Id }
+                    Artifacts = new FrameArtifactLinks(artifact.Id, null, null, null)
                 });
                 continue;
             }
@@ -167,9 +167,10 @@ internal sealed partial class DesktopWorkflowController
         {
             sequence = _services.Pipeline.GetExportSequence(CurrentProject);
         }
-        catch
+        catch (Exception ex)
         {
-            sequence = CurrentProject.Frames.Where(frame => frame.Enabled).OrderBy(frame => frame.Order).ToArray();
+            ShowError(ex);
+            return false;
         }
         if (sequence.Count == 0) return false;
 

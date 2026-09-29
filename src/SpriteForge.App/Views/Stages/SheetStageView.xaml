@@ -16,7 +16,8 @@
                 <TextBlock Text="SHEET" Style="{StaticResource InspectorTitleStyle}" />
                 <TextBlock Text="Sprite sheet" Style="{StaticResource SectionTitleStyle}" />
                 <TextBlock Text="Cell"/>
-                <StackPanel Orientation="Horizontal" Spacing="8"><NumberBox Value="{Binding SheetCellWidth, Mode=TwoWay}" Minimum="1" Width="110"/><TextBlock Text="×" VerticalAlignment="Center"/><NumberBox Value="{Binding SheetCellHeight, Mode=TwoWay}" Minimum="1" Width="110"/></StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8"><NumberBox Value="{Binding SheetCellWidth}" Minimum="1" Width="110" IsEnabled="False"/><TextBlock Text="×" VerticalAlignment="Center"/><NumberBox Value="{Binding SheetCellHeight}" Minimum="1" Width="110" IsEnabled="False"/></StackPanel>
+                <TextBlock Text="Cell size follows the Align canvas in V1." TextWrapping="Wrap" Opacity="0.58" />
                 <TextBlock Text="Columns (0 = Auto)"/><NumberBox Value="{Binding SheetColumns, Mode=TwoWay}" Minimum="0" SpinButtonPlacementMode="Compact" />
                 <TextBlock Text="Padding"/><NumberBox Value="{Binding SheetPadding, Mode=TwoWay}" Minimum="0" />
                 <TextBlock Text="Spacing"/><NumberBox Value="{Binding SheetSpacing, Mode=TwoWay}" Minimum="0" />

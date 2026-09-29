@@ -15,10 +15,28 @@ internal sealed partial class DesktopWorkflowController
             return;
         }
 
-        project.Extraction = new ExtractionSettings(
-            Math.Max(0.01, _viewModel.PreviewFps),
-            Math.Max(0, _viewModel.ExtractionStartSeconds),
-            _viewModel.ExtractionHasEndTime ? Math.Max(0, _viewModel.ExtractionEndSeconds) : null);
+        var fps = NormalizeFinite(_viewModel.PreviewFps, project.Extraction.Fps, 0.01, 120);
+        var startSeconds = NormalizeFinite(
+            _viewModel.ExtractionStartSeconds,
+            project.Extraction.StartSeconds,
+            0);
+        double? endSeconds = null;
+        if (_viewModel.ExtractionHasEndTime)
+        {
+            var fallbackEnd = project.Extraction.EndSeconds ?? Math.Max(startSeconds + 3, 3);
+            endSeconds = NormalizeFinite(_viewModel.ExtractionEndSeconds, fallbackEnd, 0);
+            if (endSeconds <= startSeconds)
+            {
+                ShowError(new ArgumentException("End time must be greater than start time."));
+                return;
+            }
+        }
+
+        project.Extraction = new ExtractionSettings(fps, startSeconds, endSeconds);
+        _viewModel.PreviewFps = fps;
+        _viewModel.ExtractionStartSeconds = startSeconds;
+        if (endSeconds is { } end) _viewModel.ExtractionEndSeconds = end;
+
         var sourcePath = CurrentWorkspace.ResolveRelative(source.RelativePath);
         var fingerprint = _services.Fingerprints.Compute("extract_frames", new { source.Sha256, project.Extraction });
 
@@ -46,7 +64,11 @@ internal sealed partial class DesktopWorkflowController
         project.BackgroundRemoval = project.BackgroundRemoval with
         {
             Enabled = _viewModel.BackgroundRemovalEnabled,
-            AlphaThreshold = Math.Clamp(_viewModel.AlphaThreshold, 0, 1)
+            AlphaThreshold = NormalizeFinite(
+                _viewModel.AlphaThreshold,
+                project.BackgroundRemoval.AlphaThreshold,
+                0,
+                1)
         };
 
         if (!project.BackgroundRemoval.Enabled)
@@ -160,12 +182,26 @@ internal sealed partial class DesktopWorkflowController
             });
 
         if (_viewModel.GetStage(PipelineStage.Loop).State != StageState.Complete) return;
+
         PopulateLoopCandidates(candidates);
-        if (candidates.Count > 0)
+        if (candidates.Count == 0)
         {
-            ApplyLoopCandidate(candidates[0], recommended: true);
+            project.Loop = project.Loop with
+            {
+                StartFrameId = null,
+                EndFrameId = null,
+                Recommended = false
+            };
             await SaveAsync();
+            RefreshViewModel();
+            _viewModel.SetStageState(PipelineStage.Loop, StageState.Neutral);
+            _viewModel.JobStatus.Message =
+                "No automatic loop seam was found. Choose a manual range or disable looping.";
+            return;
         }
+
+        ApplyLoopCandidate(candidates[0], recommended: true);
+        await SaveAsync();
         RefreshViewModel();
         MarkDownstreamStale(PipelineStage.Loop);
         _viewModel.SetStageState(PipelineStage.Loop, StageState.Complete);
@@ -176,8 +212,12 @@ internal sealed partial class DesktopWorkflowController
     {
         var enabled = CurrentProject.Frames.Where(frame => frame.Enabled).OrderBy(frame => frame.Order).ToArray();
         if (enabled.Length == 0) return;
-        var start = Math.Clamp((int)Math.Round(_viewModel.LoopStart) - 1, 0, enabled.Length - 1);
-        var end = Math.Clamp((int)Math.Round(_viewModel.LoopEnd) - 1, start, enabled.Length - 1);
+        var startNumber = NormalizeFrameNumber(_viewModel.LoopStart, 1, enabled.Length);
+        var endNumber = NormalizeFrameNumber(_viewModel.LoopEnd, enabled.Length, enabled.Length);
+        var start = startNumber - 1;
+        var end = Math.Max(start, endNumber - 1);
+        _viewModel.LoopStart = start + 1;
+        _viewModel.LoopEnd = end + 1;
         CurrentProject.Loop = _viewModel.LoopEnabled
             ? new LoopSettings(true, enabled[start].Id, enabled[end].Id, false)
             : new LoopSettings(false, null, null, false);
@@ -201,12 +241,17 @@ internal sealed partial class DesktopWorkflowController
     {
         var project = CurrentProject;
         project.Sheet = new SheetSettings(
-            _viewModel.SheetColumns <= 0 ? null : Math.Max(1, (int)Math.Round(_viewModel.SheetColumns)),
-            Math.Max(1, (int)Math.Round(_viewModel.SheetCellWidth)),
-            Math.Max(1, (int)Math.Round(_viewModel.SheetCellHeight)),
-            Math.Max(0, (int)Math.Round(_viewModel.SheetPadding)),
-            Math.Max(0, (int)Math.Round(_viewModel.SheetSpacing)),
+            NormalizeColumns(_viewModel.SheetColumns, project.Sheet.Columns),
+            project.Normalization.CanvasWidth,
+            project.Normalization.CanvasHeight,
+            NormalizeNonNegativeInt(_viewModel.SheetPadding, project.Sheet.Padding),
+            NormalizeNonNegativeInt(_viewModel.SheetSpacing, project.Sheet.Spacing),
             _viewModel.PowerOfTwoSheet);
+        _viewModel.SheetCellWidth = project.Sheet.CellWidth;
+        _viewModel.SheetCellHeight = project.Sheet.CellHeight;
+        _viewModel.SheetColumns = project.Sheet.Columns ?? 0;
+        _viewModel.SheetPadding = project.Sheet.Padding;
+        _viewModel.SheetSpacing = project.Sheet.Spacing;
 
         string? previewPath = null;
         var fingerprint = _services.Fingerprints.Compute("build_sheet", new
@@ -305,6 +350,7 @@ internal sealed partial class DesktopWorkflowController
         }
 
         _operationCts = new CancellationTokenSource();
+        var logsDirectory = CurrentWorkspace.Logs;
         _viewModel.JobStatus.IsRunning = true;
         _viewModel.JobStatus.CanCancel = true;
         _viewModel.JobStatus.Progress = 0;
@@ -325,7 +371,7 @@ internal sealed partial class DesktopWorkflowController
                 work,
                 progress,
                 _operationCts.Token,
-                job => _services.JobLogs.WriteAsync(CurrentWorkspace.Logs, job));
+                job => _services.JobLogs.WriteAsync(logsDirectory, job));
             _viewModel.SetStageState(pipelineStage, StageState.Complete);
             MarkDownstreamStale(pipelineStage);
             await SaveAsync();
