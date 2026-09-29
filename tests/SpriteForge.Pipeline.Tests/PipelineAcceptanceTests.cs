@@ -64,11 +64,21 @@ public sealed class PipelineAcceptanceTests
             Assert.Equal(6, project.Frames.Count);
 
             await pipeline.RemoveBackgroundsAsync(project, workspace, null, cancellationToken);
-            Assert.All(project.Frames, frame => Assert.NotNull(frame.Artifacts.Transparent));
+            Assert.All(
+                project.Frames.Where(frame => frame.Enabled),
+                frame => Assert.NotNull(frame.Artifacts.Transparent));
+            Assert.All(
+                project.Frames.Where(frame => !frame.Enabled),
+                frame => Assert.Null(frame.Artifacts.Transparent));
             Assert.True(ContainsTransparentPixel(project, workspace));
 
             await pipeline.NormalizeFramesAsync(project, workspace, null, cancellationToken);
-            Assert.All(project.Frames, frame => Assert.NotNull(frame.Artifacts.Normalized));
+            Assert.All(
+                project.Frames.Where(frame => frame.Enabled),
+                frame => Assert.NotNull(frame.Artifacts.Normalized));
+            Assert.All(
+                project.Frames.Where(frame => !frame.Enabled),
+                frame => Assert.Null(frame.Artifacts.Normalized));
 
             var candidates = await pipeline.AnalyzeLoopAsync(project, workspace, cancellationToken);
             Assert.NotEmpty(candidates);
