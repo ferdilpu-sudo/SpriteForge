@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using SpriteForge.Core.Errors;
 using SpriteForge.Core.Models;
 
@@ -182,6 +183,7 @@ public sealed class ProjectDocumentValidator
             Fail($"Frame {frameId} {label} link references a missing artifact.");
     }
 
+    [DoesNotReturn]
     private static void Fail(string message) =>
         throw new SpriteForgeException("PROJECT_INVALID", message, recoverable: false);
 }
