@@ -65,6 +65,8 @@ $PriPath = Join-Path $PackageRoot 'SpriteForge.App.pri'
 $WorkerPath = Join-Path $PackageRoot 'workers\background-removal\worker.py'
 if (-not (Test-Path $ExePath)) { throw "Published executable is missing: $ExePath" }
 if (-not (Test-Path $PriPath)) { throw "Published app PRI is missing: $PriPath" }
+$IconAssetPath = Join-Path $PackageRoot 'Assets\SpriteForge.ico'
+if (-not (Test-Path $IconAssetPath)) { throw "App icon asset is missing: $IconAssetPath" }
 if (-not (Test-Path $WorkerPath)) { throw "Background-removal worker source is missing: $WorkerPath" }
 
 $ScriptsDirectory = Join-Path $PackageRoot 'scripts'
@@ -75,6 +77,7 @@ New-Item -ItemType Directory -Force -Path $DocsDirectory | Out-Null
 Copy-Item (Join-Path $Root 'scripts\verify-runtime-prereqs.ps1') (Join-Path $ScriptsDirectory 'verify-runtime-prereqs.ps1')
 Copy-Item (Join-Path $Root 'scripts\setup-worker.ps1') (Join-Path $ScriptsDirectory 'setup-worker.ps1')
 Copy-Item (Join-Path $Root 'scripts\desktop-smoke.ps1') (Join-Path $ScriptsDirectory 'desktop-smoke.ps1')
+Copy-Item (Join-Path $Root 'scripts\install-shortcuts.ps1') (Join-Path $ScriptsDirectory 'install-shortcuts.ps1')
 Copy-Item (Join-Path $Root 'docs\V1-ACCEPTANCE.md') (Join-Path $DocsDirectory 'V1-ACCEPTANCE.md')
 Copy-Item (Join-Path $Root 'README.md') (Join-Path $PackageRoot 'README.md')
 Copy-Item (Join-Path $Root 'CHANGELOG.md') (Join-Path $PackageRoot 'CHANGELOG.md')
@@ -124,6 +127,12 @@ The .NET runtime and Windows App SDK are included. You do not need the .NET SDK 
 ```
 
 The background-removal model may download data on first use through rembg.
+
+5. Optional: add SpriteForge to the Start Menu (and pin it to the taskbar from there):
+
+```powershell
+.\scripts\install-shortcuts.ps1 -Desktop
+```
 "@
 Set-Content -Path (Join-Path $PackageRoot 'RELEASE-README.md') -Value $ReleaseReadme -Encoding UTF8
 

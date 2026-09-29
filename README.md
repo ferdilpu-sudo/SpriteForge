@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/branding/SpriteForge-app-icon-1024.png" alt="SpriteForge" width="128" />
+</p>
+
 # SpriteForge
 
 SpriteForge is a Windows-first desktop pipeline for turning videos, images, or frame sequences into optimized sprite sheets and JSON animation metadata.
