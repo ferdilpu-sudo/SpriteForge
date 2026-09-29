@@ -17,8 +17,7 @@ internal sealed partial class DesktopWorkflowController
         InvalidateLoopAfterFrameEdit();
         await SaveAsync();
         RefreshViewModel();
-        _viewModel.SetStageState(PipelineStage.Loop, StageState.Stale);
-        MarkDownstreamStale(PipelineStage.Loop);
+        MarkDownstreamStale(PipelineStage.Frames);
     }
 
     public Task MoveSelectedFrameLeftAsync() => MoveSelectedFrameAsync(-1);
@@ -72,6 +71,7 @@ internal sealed partial class DesktopWorkflowController
                 {
                     Order = index,
                     Enabled = true,
+                    DurationMs = 1000d / Math.Max(0.01, CurrentProject.Extraction.Fps),
                     Artifacts = new FrameArtifactLinks(artifact.Id, null, null, null)
                 });
                 continue;

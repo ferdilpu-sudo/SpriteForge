@@ -15,6 +15,24 @@
                     <CheckBox Content="Use end time" IsChecked="{Binding ExtractionHasEndTime, Mode=TwoWay}" />
                     <TextBlock Text="End time (seconds)"/><NumberBox Value="{Binding ExtractionEndSeconds, Mode=TwoWay}" Minimum="0" SpinButtonPlacementMode="Compact" IsEnabled="{Binding ExtractionHasEndTime}" />
                     <TextBlock Text="Target FPS"/><NumberBox Value="{Binding PreviewFps, Mode=TwoWay}" Minimum="0.01" Maximum="120" SpinButtonPlacementMode="Compact" />
+
+                    <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,4" />
+                    <TextBlock Text="Frame optimization" Style="{StaticResource SectionTitleStyle}" />
+                    <ComboBox SelectedValuePath="Tag" SelectedValue="{Binding FrameOptimizationMode, Mode=TwoWay}">
+                        <ComboBoxItem Content="Raw · keep every frame" Tag="raw"/>
+                        <ComboBoxItem Content="Compact · 6–8 keyframes" Tag="compact"/>
+                        <ComboBoxItem Content="Balanced · 8–12 keyframes" Tag="balanced"/>
+                        <ComboBoxItem Content="Smooth · 12–18 keyframes" Tag="smooth"/>
+                    </ComboBox>
+                    <NumberBox Header="Near-duplicate similarity"
+                               Value="{Binding FrameSimilarityThreshold, Mode=TwoWay}"
+                               Minimum="0"
+                               Maximum="1"
+                               SmallChange="0.01"
+                               SpinButtonPlacementMode="Compact" />
+                    <ToggleSwitch Header="Preserve motion peaks" IsOn="{Binding PreserveMotionPeaks, Mode=TwoWay}" />
+                    <TextBlock Text="{Binding FrameOptimizationSummary}" TextWrapping="Wrap" Opacity="0.64" />
+
                     <TextBlock Text="{Binding FramePosition}" Opacity="0.64" />
                     <Button Content="Extract / Re-extract frames" Style="{StaticResource AccentButtonStyle}" Click="OnExtractClick" />
                     <InfoBar IsOpen="True" IsClosable="False" Severity="Warning" Title="Dependent work" Message="Re-extraction replaces frame state only after FFmpeg succeeds; existing valid results survive a failed attempt." />

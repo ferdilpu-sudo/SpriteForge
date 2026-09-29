@@ -64,6 +64,10 @@ public sealed partial class ShellViewModel : ObservableObject
     [ObservableProperty] private double extractionStartSeconds;
     [ObservableProperty] private double extractionEndSeconds = 3;
     [ObservableProperty] private bool extractionHasEndTime = true;
+    [ObservableProperty] private string frameOptimizationMode = "balanced";
+    [ObservableProperty] private double frameSimilarityThreshold = 0.96;
+    [ObservableProperty] private bool preserveMotionPeaks = true;
+    [ObservableProperty] private string frameOptimizationSummary = "Balanced · automatic keyframes";
 
     [ObservableProperty] private bool backgroundRemovalEnabled = true;
     [ObservableProperty] private double alphaThreshold = 0.05;

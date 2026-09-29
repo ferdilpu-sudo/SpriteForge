@@ -41,6 +41,19 @@ internal sealed partial class DesktopWorkflowController
         return Math.Clamp((int)Math.Round(safe), 1, Math.Max(1, frameCount));
     }
 
+    private static string NormalizeFrameOptimizationMode(string? value, string? fallback = null)
+    {
+        static string? Canonicalize(string? candidate)
+        {
+            var normalized = candidate?.Trim().ToLowerInvariant();
+            return normalized is "raw" or "compact" or "balanced" or "smooth"
+                ? normalized
+                : null;
+        }
+
+        return Canonicalize(value) ?? Canonicalize(fallback) ?? "balanced";
+    }
+
     private static string NormalizeFit(string? value, string? fallback = null)
     {
         var normalized = value?.Trim().ToLowerInvariant();
