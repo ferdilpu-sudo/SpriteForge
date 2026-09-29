@@ -13,8 +13,8 @@
                 <ToggleSwitch Header="Loop enabled" IsOn="{Binding LoopEnabled, Mode=TwoWay}" />
                 <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="Start" Width="60" VerticalAlignment="Center"/><NumberBox Value="{Binding LoopStart, Mode=TwoWay}" Minimum="1" Maximum="{Binding Frames.Count}" Width="120"/></StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="End" Width="60" VerticalAlignment="Center"/><NumberBox Value="{Binding LoopEnd, Mode=TwoWay}" Minimum="1" Maximum="{Binding Frames.Count}" Width="120"/></StackPanel>
-                <Button Content="Apply manual range" Click="OnApplyManualClick" />
-                <Button Content="Analyze loop seams" Style="{StaticResource AccentButtonStyle}" Click="OnAnalyzeClick" />
+                <Button Content="Apply manual range" Click="OnApplyManualClick" IsEnabled="{Binding CanAnalyzeLoop}" />
+                <Button Content="Analyze loop seams" Style="{StaticResource AccentButtonStyle}" Click="OnAnalyzeClick" IsEnabled="{Binding CanAnalyzeLoop}" />
                 <TextBlock Text="Suggested seams" FontWeight="SemiBold" Margin="0,6,0,0" />
                 <ListView ItemsSource="{Binding LoopCandidates}" SelectedItem="{Binding SelectedLoopCandidate, Mode=TwoWay}" SelectionMode="Single" MaxHeight="180">
                     <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate></ListView.ItemTemplate>

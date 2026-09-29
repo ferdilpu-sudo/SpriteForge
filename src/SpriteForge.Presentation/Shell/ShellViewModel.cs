@@ -95,6 +95,10 @@ public sealed partial class ShellViewModel : ObservableObject
     public bool HasFrames => Frames.Count > 0;
     public bool HasSelectedFrame => SelectedFrame is not null;
     public bool HasPreview => !string.IsNullOrWhiteSpace(PreviewImagePath);
+    public bool CanNormalizeFrames => HasFrames && GetStage(PipelineStage.Cutout).State is StageState.Complete or StageState.Skipped;
+    public bool CanAnalyzeLoop => GetStage(PipelineStage.Align).State == StageState.Complete;
+    public bool CanBuildSheet => CanAnalyzeLoop && GetStage(PipelineStage.Loop).State is StageState.Complete or StageState.Skipped;
+    public bool CanExport => GetStage(PipelineStage.Sheet).State == StageState.Complete;
     public double PlaybackControlsOpacity => HasFrames ? 1d : 0.45d;
     public double ZoomControlsOpacity => HasPreview ? 1d : 0.45d;
     public string PreviewZoomLabel => $"{PreviewZoom * 100:0}%";
@@ -106,7 +110,14 @@ public sealed partial class ShellViewModel : ObservableObject
     public PipelineStageItemViewModel GetStage(PipelineStage stage) =>
         Stages.First(item => item.Stage == stage);
 
-    public void SetStageState(PipelineStage stage, StageState state) => GetStage(stage).State = state;
+    public void SetStageState(PipelineStage stage, StageState state)
+    {
+        GetStage(stage).State = state;
+        OnPropertyChanged(nameof(CanNormalizeFrames));
+        OnPropertyChanged(nameof(CanAnalyzeLoop));
+        OnPropertyChanged(nameof(CanBuildSheet));
+        OnPropertyChanged(nameof(CanExport));
+    }
 
     public void NavigateTo(PipelineStage stage)
     {
@@ -121,6 +132,7 @@ public sealed partial class ShellViewModel : ObservableObject
         SelectedFrame = Frames.Count == 0 ? null : Frames[CurrentFrameIndex];
 
         OnPropertyChanged(nameof(HasFrames));
+        OnPropertyChanged(nameof(CanNormalizeFrames));
         OnPropertyChanged(nameof(PlaybackControlsOpacity));
         OnPropertyChanged(nameof(FramePosition));
     }

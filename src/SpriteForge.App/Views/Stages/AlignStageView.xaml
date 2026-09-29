@@ -39,7 +39,7 @@
                     <NumberBox Header="Y" Value="{Binding SelectedFramePivotY, Mode=TwoWay}" Minimum="0" Maximum="1" SmallChange="0.05" Width="110"/>
                 </StackPanel>
                 <Button Content="Apply pivot to selected frame" Click="OnApplyPivotClick" />
-                <Button Content="Apply normalization to all enabled frames" Style="{StaticResource AccentButtonStyle}" Click="OnApplyAllClick" />
+                <Button Content="Apply normalization to all enabled frames" Style="{StaticResource AccentButtonStyle}" Click="OnApplyAllClick" IsEnabled="{Binding CanNormalizeFrames}" />
             </StackPanel>
         </Border>
     </Grid>

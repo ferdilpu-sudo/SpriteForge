@@ -84,17 +84,33 @@ internal sealed partial class DesktopWorkflowController
     public async Task NormalizeFramesAsync()
     {
         var project = CurrentProject;
-        project.Normalization = new NormalizationSettings(
-            Math.Max(1, (int)Math.Round(_viewModel.CanvasWidth)),
-            Math.Max(1, (int)Math.Round(_viewModel.CanvasHeight)),
-            NormalizeFit(_viewModel.FitMode),
-            NormalizeAnchor(_viewModel.Anchor),
-            _viewModel.AutoTrim);
-        project.Sheet = project.Sheet with
+
+        try
         {
-            CellWidth = project.Normalization.CanvasWidth,
-            CellHeight = project.Normalization.CanvasHeight
-        };
+            project.Normalization = new NormalizationSettings(
+                NormalizeDimension(_viewModel.CanvasWidth, project.Normalization.CanvasWidth),
+                NormalizeDimension(_viewModel.CanvasHeight, project.Normalization.CanvasHeight),
+                NormalizeFit(_viewModel.FitMode, project.Normalization.Fit),
+                NormalizeAnchor(_viewModel.Anchor, project.Normalization.Anchor),
+                _viewModel.AutoTrim);
+
+            project.Sheet = project.Sheet with
+            {
+                CellWidth = project.Normalization.CanvasWidth,
+                CellHeight = project.Normalization.CanvasHeight
+            };
+
+            _viewModel.CanvasWidth = project.Normalization.CanvasWidth;
+            _viewModel.CanvasHeight = project.Normalization.CanvasHeight;
+            _viewModel.FitMode = project.Normalization.Fit;
+            _viewModel.Anchor = project.Normalization.Anchor;
+        }
+        catch (Exception ex)
+        {
+            _viewModel.SetStageState(PipelineStage.Align, StageState.Error);
+            ShowError(ex);
+            return;
+        }
 
         var fingerprint = _services.Fingerprints.Compute("normalize_frames", new
         {
@@ -102,6 +118,7 @@ internal sealed partial class DesktopWorkflowController
             frames = EnabledFrameHashes(preferTransparent: project.BackgroundRemoval.Enabled),
             transforms = project.Frames.Where(frame => frame.Enabled).OrderBy(frame => frame.Order).Select(frame => frame.Transform)
         });
+
         await RunStageAsync(
             PipelineStage.Align,
             JobStage.NormalizeFrames,

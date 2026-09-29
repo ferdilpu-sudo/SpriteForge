@@ -24,7 +24,7 @@
                 <CheckBox Content="Sprite sheet PNG" IsChecked="True" IsEnabled="False" />
                 <CheckBox Content="Metadata JSON" IsChecked="True" IsEnabled="False" />
                 <CheckBox Content="Individual PNG frames" IsChecked="{Binding ExportIndividualFrames, Mode=TwoWay}" />
-                <Button Content="Export" Style="{StaticResource AccentButtonStyle}" Click="OnExportClick" />
+                <Button Content="Export" Style="{StaticResource AccentButtonStyle}" Click="OnExportClick" IsEnabled="{Binding CanExport}" />
                 <TextBlock Text="Existing files are never overwritten without explicit confirmation. Repeated exports are stored as immutable project history." TextWrapping="Wrap" Opacity="0.64" />
             </StackPanel>
         </Border>

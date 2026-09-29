@@ -21,7 +21,7 @@
                 <TextBlock Text="Padding"/><NumberBox Value="{Binding SheetPadding, Mode=TwoWay}" Minimum="0" />
                 <TextBlock Text="Spacing"/><NumberBox Value="{Binding SheetSpacing, Mode=TwoWay}" Minimum="0" />
                 <ToggleSwitch Header="Power-of-two canvas" IsOn="{Binding PowerOfTwoSheet, Mode=TwoWay}" />
-                <Button Content="Build sheet preview" Style="{StaticResource AccentButtonStyle}" Click="OnBuildClick" />
+                <Button Content="Build sheet preview" Style="{StaticResource AccentButtonStyle}" Click="OnBuildClick" IsEnabled="{Binding CanBuildSheet}" />
             </StackPanel>
         </Border>
     </Grid>

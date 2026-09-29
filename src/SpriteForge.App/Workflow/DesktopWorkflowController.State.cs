@@ -279,27 +279,38 @@ internal sealed partial class DesktopWorkflowController
     private ProjectDocument CurrentProject => _project ?? throw new InvalidOperationException("No project is open.");
     private ProjectWorkspacePaths CurrentWorkspace => _workspace ?? throw new InvalidOperationException("No project workspace is open.");
 
-    private static string NormalizeFit(string value) => value.Trim().ToLowerInvariant() switch
+    private static int NormalizeDimension(double value, int fallback)
     {
-        "contain" => "contain",
-        "cover" => "cover",
-        "original" => "original",
-        _ => "contain"
-    };
+        var safe = double.IsFinite(value) && value >= 1 ? value : Math.Max(1, fallback);
+        return Math.Clamp((int)Math.Round(safe), 1, 16_384);
+    }
 
-    private static string NormalizeAnchor(string value) => value.Trim().ToLowerInvariant().Replace(' ', '_') switch
+    private static string NormalizeFit(string? value, string? fallback = null)
     {
-        "top_left" => "top_left",
-        "top_center" => "top_center",
-        "top_right" => "top_right",
-        "center_left" => "center_left",
-        "center" => "center",
-        "center_right" => "center_right",
-        "bottom_left" => "bottom_left",
-        "bottom_center" => "bottom_center",
-        "bottom_right" => "bottom_right",
-        _ => "bottom_center"
-    };
+        var normalized = value?.Trim().ToLowerInvariant();
+        if (normalized is "contain" or "cover" or "original") return normalized;
+
+        var normalizedFallback = fallback?.Trim().ToLowerInvariant();
+        return normalizedFallback is "contain" or "cover" or "original"
+            ? normalizedFallback
+            : "contain";
+    }
+
+    private static string NormalizeAnchor(string? value, string? fallback = null)
+    {
+        static string? Canonicalize(string? candidate)
+        {
+            var normalized = candidate?.Trim().ToLowerInvariant().Replace(' ', '_');
+            return normalized is
+                "top_left" or "top_center" or "top_right" or
+                "center_left" or "center" or "center_right" or
+                "bottom_left" or "bottom_center" or "bottom_right"
+                ? normalized
+                : null;
+        }
+
+        return Canonicalize(value) ?? Canonicalize(fallback) ?? "bottom_center";
+    }
 
     private static string MakeSafeExportName(string value)
     {
