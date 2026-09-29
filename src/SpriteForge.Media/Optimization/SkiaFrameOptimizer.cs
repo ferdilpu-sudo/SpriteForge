@@ -15,24 +15,51 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
         Validate(request);
         var mode = request.Settings.Mode.Trim().ToLowerInvariant();
         var frameCount = request.FramePaths.Count;
-        if (mode == "raw" || frameCount <= 2)
-            return BuildResult(Enumerable.Range(0, frameCount).ToHashSet(), new double[frameCount], request.SourceFrameDurationMs, frameCount);
+        if (mode == "raw" || frameCount <= 1)
+            return BuildResult(
+                Enumerable.Range(0, frameCount).ToHashSet(),
+                new double[frameCount],
+                request.SourceFrameDurationMs,
+                frameCount);
 
-        var differences = await AnalyzeDifferencesAsync(request.FramePaths, progress, cancellationToken).ConfigureAwait(false);
+        var differences = await AnalyzeDifferencesAsync(
+            request.FramePaths,
+            progress,
+            cancellationToken).ConfigureAwait(false);
         var motionScores = BuildMotionScores(differences, request.Settings.PreserveMotionPeaks);
-        var (minimum, maximum) = GetTargetRange(mode, frameCount);
-        var candidates = FindMeaningfulCandidates(differences, 1d - request.Settings.SimilarityThreshold, frameCount);
-        var selected = candidates.Count > maximum
-            ? SelectByImportance(candidates, motionScores, maximum, frameCount)
-            : candidates.ToHashSet();
+        var threshold = ResolveThreshold(differences, 1d - request.Settings.SimilarityThreshold);
 
-        if (selected.Count < minimum)
-            AddByImportance(selected, Enumerable.Range(0, frameCount), motionScores, minimum, frameCount);
+        var significant = Enumerable.Range(1, frameCount - 1)
+            .Where(index => differences[index] > threshold)
+            .ToArray();
 
-        selected.Add(0);
-        selected.Add(frameCount - 1);
-        progress?.Report(new PipelineProgress(1, $"Optimized {frameCount} frames to {selected.Count} keyframes", selected.Count, frameCount));
-        return BuildResult(selected, motionScores, request.SourceFrameDurationMs, frameCount);
+        HashSet<int> selected;
+        if (significant.Length == 0)
+        {
+            selected = [0];
+        }
+        else
+        {
+            var target = Math.Min(GetTargetCount(mode), significant.Length + 1);
+            selected = significant.Length + 1 <= target
+                ? significant.Append(0).ToHashSet()
+                : SelectByCumulativeMotion(significant, differences, target);
+
+            if (request.Settings.PreserveMotionPeaks)
+                PreserveStrongestPeak(selected, significant, differences, target);
+        }
+
+        progress?.Report(new PipelineProgress(
+            1,
+            $"Optimized {frameCount} frames to {selected.Count} keyframes",
+            selected.Count,
+            frameCount));
+
+        return BuildResult(
+            selected,
+            motionScores,
+            request.SourceFrameDurationMs,
+            frameCount);
     }
 
     private async Task<double[]> AnalyzeDifferencesAsync(
@@ -44,13 +71,23 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
         for (var index = 1; index < framePaths.Count; index++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            differences[index] = await _differenceAnalyzer.DifferenceAsync(framePaths[index - 1], framePaths[index], cancellationToken).ConfigureAwait(false);
-            progress?.Report(new PipelineProgress(index / (double)Math.Max(1, framePaths.Count - 1), "Analyzing frame similarity", index, framePaths.Count - 1));
+            differences[index] = await _differenceAnalyzer.DifferenceAsync(
+                framePaths[index - 1],
+                framePaths[index],
+                cancellationToken).ConfigureAwait(false);
+
+            progress?.Report(new PipelineProgress(
+                index / (double)Math.Max(1, framePaths.Count - 1),
+                "Analyzing localized frame motion",
+                index,
+                framePaths.Count - 1));
         }
         return differences;
     }
 
-    private static double[] BuildMotionScores(IReadOnlyList<double> differences, bool preserveMotionPeaks)
+    private static double[] BuildMotionScores(
+        IReadOnlyList<double> differences,
+        bool preserveMotionPeaks)
     {
         var scores = new double[differences.Count];
         for (var index = 0; index < scores.Length; index++)
@@ -62,52 +99,72 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
         return scores;
     }
 
-    private static IReadOnlyList<int> FindMeaningfulCandidates(IReadOnlyList<double> differences, double threshold, int frameCount)
+    private static double ResolveThreshold(
+        IReadOnlyList<double> differences,
+        double configuredThreshold)
     {
-        var candidates = new List<int> { 0 };
-        for (var index = 1; index < frameCount - 1; index++)
-        {
-            if (differences[index] > threshold || differences[index + 1] > threshold)
-                candidates.Add(index);
-        }
-        candidates.Add(frameCount - 1);
-        return candidates;
+        if (differences.Count <= 1) return configuredThreshold;
+
+        var values = differences.Skip(1).OrderBy(value => value).ToArray();
+        var median = values[values.Length / 2];
+        var maximum = values[^1];
+
+        if (maximum >= configuredThreshold) return configuredThreshold;
+        if (maximum <= median * 1.5 || maximum - median < 0.005)
+            return configuredThreshold;
+
+        return Math.Max(0.005, median + (maximum - median) * 0.25);
     }
 
-    private static HashSet<int> SelectByImportance(
-        IEnumerable<int> pool,
-        IReadOnlyList<double> motionScores,
-        int targetCount,
-        int frameCount)
+    private static HashSet<int> SelectByCumulativeMotion(
+        IReadOnlyList<int> significant,
+        IReadOnlyList<double> differences,
+        int targetCount)
     {
-        var selected = new HashSet<int> { 0, frameCount - 1 };
-        AddByImportance(selected, pool, motionScores, targetCount, frameCount);
+        var selected = new HashSet<int> { 0 };
+        var cumulative = new double[significant.Count];
+        double total = 0;
+        for (var index = 0; index < significant.Count; index++)
+        {
+            total += differences[significant[index]];
+            cumulative[index] = total;
+        }
+
+        var motionSlots = Math.Max(1, targetCount - 1);
+        for (var slot = 1; slot <= motionSlots; slot++)
+        {
+            var target = total * slot / motionSlots;
+            var position = Array.FindIndex(cumulative, value => value >= target);
+            selected.Add(significant[position < 0 ? significant.Count - 1 : position]);
+        }
+
+        foreach (var index in significant.OrderByDescending(index => differences[index]))
+        {
+            if (selected.Count >= targetCount) break;
+            selected.Add(index);
+        }
+
         return selected;
     }
 
-    private static void AddByImportance(
+    private static void PreserveStrongestPeak(
         HashSet<int> selected,
-        IEnumerable<int> pool,
-        IReadOnlyList<double> motionScores,
-        int targetCount,
-        int frameCount)
+        IReadOnlyList<int> significant,
+        IReadOnlyList<double> differences,
+        int targetCount)
     {
-        var available = pool.Distinct().Where(index => !selected.Contains(index)).ToArray();
-        while (selected.Count < targetCount && available.Any(index => !selected.Contains(index)))
-        {
-            var best = available
-                .Where(index => !selected.Contains(index))
-                .OrderByDescending(index => CandidateScore(index, selected, motionScores, frameCount))
-                .ThenBy(index => index)
-                .First();
-            selected.Add(best);
-        }
-    }
+        var peak = significant.OrderByDescending(index => differences[index]).First();
+        if (selected.Contains(peak)) return;
 
-    private static double CandidateScore(int index, IReadOnlySet<int> selected, IReadOnlyList<double> motionScores, int frameCount)
-    {
-        var distance = selected.Count == 0 ? frameCount : selected.Min(existing => Math.Abs(existing - index));
-        return motionScores[index] * 2d + distance / (double)Math.Max(1, frameCount - 1);
+        if (selected.Count >= targetCount)
+        {
+            var removable = selected
+                .Where(index => index != 0)
+                .OrderBy(index => differences[index])
+                .FirstOrDefault();
+            selected.Remove(removable);
+        }
+        selected.Add(peak);
     }
 
     private static FrameOptimizationResult BuildResult(
@@ -138,17 +195,13 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
         return new FrameOptimizationResult(decisions);
     }
 
-    private static (int Minimum, int Maximum) GetTargetRange(string mode, int frameCount)
+    private static int GetTargetCount(string mode) => mode switch
     {
-        var range = mode switch
-        {
-            "compact" => (6, 8),
-            "balanced" => (8, 12),
-            "smooth" => (12, 18),
-            _ => throw new ArgumentOutOfRangeException(nameof(mode), $"Unknown frame optimization mode '{mode}'.")
-        };
-        return (Math.Min(range.Item1, frameCount), Math.Min(range.Item2, frameCount));
-    }
+        "compact" => 7,
+        "balanced" => 10,
+        "smooth" => 16,
+        _ => throw new ArgumentOutOfRangeException(nameof(mode), $"Unknown frame optimization mode '{mode}'.")
+    };
 
     private static void Validate(FrameOptimizationRequest request)
     {
