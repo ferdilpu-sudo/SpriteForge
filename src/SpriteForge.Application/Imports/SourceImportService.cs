@@ -138,8 +138,10 @@ public sealed class SourceImportService(IFileHashService hashService, ISourceAss
         project.Source = null;
         project.Generation = null;
         project.Frames.Clear();
-        project.Artifacts.Clear();
-        project.Exports.Clear();
+        project.Artifacts.RemoveAll(artifact => artifact.Kind is not (
+            ArtifactKind.SpriteSheet or
+            ArtifactKind.Metadata or
+            ArtifactKind.ExportedFrame));
         project.Loop = project.Loop with { StartFrameId = null, EndFrameId = null, Recommended = false };
     }
 

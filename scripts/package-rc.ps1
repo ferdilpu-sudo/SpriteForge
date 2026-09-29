@@ -19,6 +19,12 @@ if ($RunningSpriteForge.Count -gt 0) {
     $Ids = ($RunningSpriteForge | ForEach-Object { $_.Id }) -join ', '
     throw "SpriteForge is running (PID: $Ids). Close it before rebuilding the RC package."
 }
+$Platform = switch ($Runtime) {
+    'win-x64' { 'x64' }
+    'win-arm64' { 'ARM64' }
+    default { throw "Unsupported runtime '$Runtime'. Supported runtimes: win-x64, win-arm64." }
+}
+
 $PackageName = "SpriteForge-v1-rc-$Runtime"
 $PackageRoot = Join-Path $OutputRoot $PackageName
 $ZipPath = Join-Path $OutputRoot "$PackageName.zip"
@@ -37,7 +43,7 @@ dotnet publish (Join-Path $Root 'src\SpriteForge.App\SpriteForge.App.csproj') `
     -c $Configuration `
     -r $Runtime `
     --self-contained true `
-    -p:Platform=x64 `
+    -p:Platform=$Platform `
     -p:WindowsAppSDKSelfContained=true `
     -p:PublishTrimmed=false `
     -p:PublishSingleFile=false `

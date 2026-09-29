@@ -106,6 +106,66 @@ public sealed class SourceImportServiceTests
         }
     }
 
+    [Fact]
+    public async Task ImportImage_PreservesImmutableExportHistory()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "spriteforge-import-tests", Guid.NewGuid().ToString("N"));
+        var input = Path.Combine(root, "input.png");
+        var workspaceRoot = Path.Combine(root, "project");
+        Directory.CreateDirectory(root);
+
+        try
+        {
+            await File.WriteAllBytesAsync(input, [1, 2, 3], TestContext.Current.CancellationToken);
+            var sheetId = Guid.NewGuid();
+            var metadataId = Guid.NewGuid();
+            var project = new ProjectDocument();
+            project.Artifacts.Add(new ArtifactRecord(
+                sheetId,
+                SpriteForge.Core.Enums.ArtifactKind.SpriteSheet,
+                "exports/history/old/sprite.png",
+                "image/png",
+                null,
+                null,
+                null,
+                "sheet-hash",
+                DateTimeOffset.UtcNow));
+            project.Artifacts.Add(new ArtifactRecord(
+                metadataId,
+                SpriteForge.Core.Enums.ArtifactKind.Metadata,
+                "exports/history/old/sprite.json",
+                "application/json",
+                null,
+                null,
+                null,
+                "metadata-hash",
+                DateTimeOffset.UtcNow));
+            project.Exports.Add(new ExportRecord(
+                Guid.NewGuid(),
+                DateTimeOffset.UtcNow,
+                "png_json",
+                sheetId,
+                metadataId,
+                "old-fingerprint"));
+
+            var service = new SourceImportService(new TestHashService(), new AcceptAllValidator());
+            await service.ImportImageAsync(
+                project,
+                new ProjectWorkspacePaths(workspaceRoot),
+                input,
+                TestContext.Current.CancellationToken);
+
+            Assert.Single(project.Exports);
+            Assert.Contains(project.Artifacts, artifact => artifact.Id == sheetId);
+            Assert.Contains(project.Artifacts, artifact => artifact.Id == metadataId);
+            Assert.NotNull(project.Source);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
     private sealed class RejectingValidator : ISourceAssetValidator
     {
         public Task ValidateImageAsync(string path, CancellationToken cancellationToken) =>
