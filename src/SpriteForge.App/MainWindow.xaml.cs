@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using SpriteForge.App.Composition;
 using SpriteForge.App.Controls;
+using SpriteForge.App.Diagnostics;
 using SpriteForge.App.Workflow;
 using SpriteForge.Presentation.Shell;
 
@@ -27,6 +28,23 @@ public sealed partial class MainWindow : Window
         ShowSelectedStage();
         ConfigurePreviewTimer();
         Title = "SpriteForge";
+        ApplyWindowIcon();
+    }
+
+    private void ApplyWindowIcon()
+    {
+        try
+        {
+            var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "SpriteForge.ico");
+            if (File.Exists(iconPath))
+            {
+                AppWindow.SetIcon(iconPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            StartupLog.Write("Failed to apply window icon.", ex);
+        }
     }
 
     public ShellViewModel ViewModel { get; }

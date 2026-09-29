@@ -6,6 +6,7 @@
     <UseWinUI>true</UseWinUI>
     <WindowsPackageType>None</WindowsPackageType>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\SpriteForge.ico</ApplicationIcon>
     <Platforms>x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
     <Version>0.9.0-beta.1</Version>
@@ -23,6 +24,8 @@
     <ProjectReference Include="..\SpriteForge.Media\SpriteForge.Media.csproj" />
     <ProjectReference Include="..\SpriteForge.Export\SpriteForge.Export.csproj" />
     <ProjectReference Include="..\SpriteForge.Diagnostics\SpriteForge.Diagnostics.csproj" />
+    <Content Include="Assets\SpriteForge.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\SpriteForge-logo.png" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\workers\background-removal\worker.py" Link="workers\background-removal\worker.py" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\workers\background-removal\requirements.txt" Link="workers\background-removal\requirements.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
