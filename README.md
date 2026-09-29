@@ -1,138 +1,143 @@
 # SpriteForge
 
-Windows-first desktop pipeline for turning images, videos, or frame sequences into transparent, loopable sprite sheets and JSON metadata.
+SpriteForge is a Windows-first desktop pipeline for turning videos, images, or frame sequences into optimized sprite sheets and JSON animation metadata.
 
-## V1 pipeline
+Current release line: **0.9.0-beta.1 public beta candidate**.
+
+## Pipeline
 
 `Source → Animate (optional) → Frames → Cutout → Align → Loop → Sheet → Export`
 
-AI generation is optional. A user can import a video and complete the local sprite workflow without configuring an external provider.
+AI generation is optional. Existing videos and frame sequences can complete the local workflow without an external provider.
 
-## Stack
+## Public beta runtime
 
-- .NET 10 / C#
-- WinUI 3 via Windows App SDK 2.5.1
-- CommunityToolkit.Mvvm 8.4.2
-- FFmpeg for frame extraction
-- SkiaSharp 4.151.2 for normalization, loop image scoring, and sheet composition
-- `rembg[cpu]` 2.0.84 in an isolated local Python worker
-- Versioned JSON project persistence
+The packaged Windows build is self-contained for .NET and Windows App SDK. End users do **not** need the .NET SDK.
 
-## Repository structure
+External runtime prerequisites:
 
-```text
-src/
-  SpriteForge.App/              WinUI shell and stage views
-  SpriteForge.Presentation/     ViewModels and UI state
-  SpriteForge.Core/             Domain models and contracts
-  SpriteForge.Application/      Use cases, invalidation, layout, orchestration
-  SpriteForge.Infrastructure/   JSON persistence, process runner, workspace, hashing
-  SpriteForge.Media/            FFmpeg, cutout adapter, normalization, loop analyzer
-  SpriteForge.Providers/        Replaceable provider adapters
-  SpriteForge.Export/           PNG sheet, frame, and JSON exporters
-  SpriteForge.Diagnostics/      Dependency/workspace checks
-workers/
-  background-removal/           Isolated rembg worker
-tests/
-  SpriteForge.Pipeline.Tests/     FFmpeg integration + golden export contracts
-docs/
-scripts/
-```
+- Windows 10 1809+ or Windows 11.
+- FFmpeg available on `PATH`.
+- Python 3.11+ only when using Cutout/background removal.
+- The local `rembg` worker, installed once with the included setup script.
 
-## Prerequisites
-
-1. Windows 10 1809+ or Windows 11.
-2. Visual Studio 2026 with WinUI application development workload.
-3. .NET 10 SDK.
-4. FFmpeg available on `PATH` or configured by the application.
-5. Python 3.11+ for the default background-removal worker.
-
-Run the local prerequisite probe:
+From an extracted beta package:
 
 ```powershell
-.\scripts\verify-prereqs.ps1
+.\scripts\setup-worker.ps1
+.\scripts\verify-runtime-prereqs.ps1 -Strict -RequireWorker
+.\scripts\desktop-smoke.ps1
 ```
 
-Set up background removal:
+The first `rembg` use can download its model data.
+
+## Developer setup
+
+Development additionally requires:
+
+- Visual Studio with WinUI application development workload.
+- .NET 10 SDK.
+
+Verify the development machine:
+
+```powershell
+.\scripts\verify-prereqs.ps1 -Strict
+```
+
+Set up the local background-removal worker:
 
 ```powershell
 .\scripts\setup-worker.ps1
 ```
 
-## Build
+Build and test:
 
 ```powershell
-dotnet restore SpriteForge.sln
-dotnet build SpriteForge.sln -c Debug
-dotnet test SpriteForge.sln -c Debug
-```
-
-Open `SpriteForge.sln` in Visual Studio and run `SpriteForge.App` on x64.
-
-## Source-safety contract
-
-- Imported originals are never edited in place.
-- Derived processing lives under `cache/`, `generated/`, or `exports/`.
-- Project metadata uses atomic writes.
-- Export does not overwrite existing files without explicit confirmation.
-- Provider secrets never belong in project JSON or logs.
-
-## Current implementation status
-
-Implemented V1 foundation:
-- desktop shell matching the eight-stage pipeline with inline progress/cancellation;
-- typed project/frame/artifact/job models and versioned JSON persistence;
-- non-destructive image, video, and PNG/WebP frame-sequence import with decode validation;
-- deterministic FFmpeg extraction using staged artifact replacement;
-- local background-removal worker adapter;
-- SkiaSharp normalization with nine anchors, per-frame pivots, and alpha-preserving composition;
-- frame enable/disable, reorder, duplicate, delete, reset, and per-frame duration editing;
-- image-difference loop recommendations plus manual loop selection and preview playback;
-- deterministic sprite-sheet layout with a 16,384 px per-side safety limit and no silent downscale;
-- PNG spritesheet, JSON metadata, and optional individual PNG export;
-- immutable canonical export history and export fingerprints based on settings, frame order, timing, pivots, and normalized raster hashes;
-- project artifact path-containment validation and atomic metadata writes;
-- physical artifact-aware stage state so missing cache/export files are not reported as complete;
-- FFmpeg/rembg/workspace diagnostics, per-job logs, and architecture/unit test projects.
-
-Provider-specific image-to-video generation remains intentionally unimplemented until a provider is selected. The local V1 workflow does not depend on it.
-
-### Validation status
-
-The repository now has a Windows CI release gate in `.github/workflows/windows-ci.yml`. On September 20, 2026, the `main` branch completed all of the following successfully on `windows-latest` with .NET 10:
-
-- solution restore;
-- Release x64 build, including WinUI/XAML compilation;
-- Core tests;
-- Application tests;
-- Infrastructure tests;
-- Architecture tests;
-- Pipeline integration tests covering real FFmpeg extraction and golden JSON metadata output.
-
-CI installs a pinned FFmpeg 9.0.1 dependency before integration testing. Static XML/XAML/project checks, event-handler wiring checks, project-reference boundary checks, Python worker syntax validation, and FFmpeg extraction smoke testing were also performed during implementation.
-
-For local verification:
-
-```powershell
-.\scripts\verify-prereqs.ps1
-.\scripts\setup-worker.ps1
-dotnet restore SpriteForge.sln
+dotnet restore SpriteForge.sln --configfile NuGet.config
 dotnet build SpriteForge.sln -c Release -p:Platform=x64
 dotnet test SpriteForge.sln -c Release
 ```
 
-The remaining release gate is application launch plus the end-to-end V1 acceptance flow with real media and the local background-removal worker.
-
-See `docs/IMPLEMENTATION-READINESS.md` for readiness decisions and the supplied product documents in `docs/` for the source-of-truth requirements.
-
-## V1 acceptance
-
-The automated Windows acceptance gate now covers import, real FFmpeg extraction, Cutout contract execution, normalization, loop analysis, sprite-sheet/metadata/frame export, project save/reopen, and deterministic re-export hash comparison.
-
-Run the local gate with:
+Run the app:
 
 ```powershell
-.\scripts\acceptance-v1.ps1
+dotnet run --project .\src\SpriteForge.App\SpriteForge.App.csproj -c Debug -p:Platform=x64
 ```
 
-The real `rembg` model runtime and interactive WinUI behavior remain desktop-manual checks. See `docs/V1-ACCEPTANCE.md` for the release checklist.
+## Frame optimization
+
+The Frames stage can automatically reduce redundant extracted frames while preserving the active motion range.
+
+Modes:
+
+- **Raw**: keep every candidate frame.
+- **Compact**: up to 7 keyframes.
+- **Balanced**: up to 10 keyframes, default.
+- **Smooth**: up to 16 keyframes.
+
+The optimizer uses localized visual motion, preserves strong motion peaks, fills temporal gaps inside the active motion range, and normalizes optimized playback timing.
+
+Disabled frames can be reviewed before using **Delete disabled frames…** to remove unused frame files from the project.
+
+## Safety limits
+
+Public beta guardrails prevent unusually large jobs from consuming unreasonable resources:
+
+- candidate extraction limit: **2,000 frames**;
+- extraction with a known range is rejected before FFmpeg starts when the estimate is over the limit;
+- unknown-duration extraction is capped with a sentinel frame and fails clearly if the limit is exceeded;
+- preview images are decoded to a maximum dimension of **1,024 px** before entering the preview cache;
+- sprite sheets remain limited to **16,384 px per side**;
+- a single sheet is rejected when its estimated raw RGBA bitmap exceeds **512 MiB**.
+
+These are safety limits, not recommended asset sizes. Typical game sprites should be much smaller.
+
+## Export
+
+V1 exports:
+
+- PNG sprite sheet;
+- JSON metadata;
+- optional individual PNG frames.
+
+Export metadata includes frame rectangles, duration, pivots, loop state, and default FPS.
+
+## Source safety
+
+- Imported originals are never edited in place.
+- Derived processing stays under the project workspace.
+- Project metadata uses atomic writes.
+- Artifact paths are constrained to the project workspace.
+- Export refuses silent overwrite.
+- Provider secrets do not belong in project JSON or logs.
+
+## CI and release
+
+Windows CI on `main` runs:
+
+- Release x64 build;
+- warnings-as-errors build gate;
+- Core/Application/Infrastructure/Architecture tests;
+- FFmpeg pipeline integration tests;
+- self-contained beta packaging.
+
+Version tags matching `v*` trigger the release workflow, which rebuilds/tests, creates a versioned ZIP plus SHA-256 checksum, and publishes a GitHub Release.
+
+See:
+
+- `docs/V1-ACCEPTANCE.md` for QA;
+- `docs/RELEASE.md` for release steps;
+- `CHANGELOG.md` for user-visible changes;
+- `THIRD-PARTY-NOTICES.md` for direct runtime dependencies.
+
+## Repository structure
+
+```text
+src/        application projects
+workers/    isolated local background-removal worker
+tests/      unit, architecture, and pipeline integration tests
+docs/       product, schema, acceptance, and release documentation
+scripts/    setup, verification, acceptance, packaging, and smoke scripts
+```
+
+Provider-specific image-to-video generation remains intentionally outside the V1 local workflow.

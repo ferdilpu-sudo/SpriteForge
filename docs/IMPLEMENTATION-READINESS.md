@@ -1,75 +1,75 @@
 # SpriteForge — Implementation Readiness Audit
 
 ## Verdict
-The supplied plan is implementation-ready for V1 with two explicit implementation decisions:
 
-1. **Project persistence:** JSON (`project.spriteforge.json`) is the V1 source of truth. The supplied schema, workspace layout, migration policy, and reproducibility requirements already center on a versioned JSON document. SQLite remains a future option behind the repository contract if project scale requires indexed queries.
-2. **Background removal:** V1 uses an isolated local Python worker with `rembg`, invoked through an adapter. The domain does not reference Python/rembg and can replace the implementation later.
+SpriteForge is technically ready for a **public beta** once the release-hardening branch is merged and its CI is green.
 
-## Ready areas
-- Product scope and V1 non-goals are explicit.
-- Pipeline stages and invalidation direction are explicit.
-- Source-safety rules are release-blocking and implementable.
-- UI information architecture is specific enough to implement without inventing a second navigation system.
-- Project and export schema are sufficiently concrete for V1.
-- Error/privacy boundaries are clear.
-- Testing expectations are concrete.
+The core processing pipeline is no longer the release risk. Remaining stable-1.0 work is primarily distribution, signing, dependency onboarding, and product/legal packaging.
 
-## Remaining non-blocking choices
-- No external image-to-video provider is selected. This does not block V1 because imported video and frame sequences are first-class and AI generation is explicitly optional.
-- Loop score thresholds are intentionally not defined. V1 exposes ranked seam suggestions without presenting the raw score as a universal quality percentage.
-- The plan does not mandate a texture-size number. V1 therefore defines an explicit **16,384 px maximum per sprite-sheet side** and fails with an actionable error rather than silently downscaling.
+## Public-beta-ready areas
 
-## Implemented V1 boundary
-The repository now includes:
+- Windows-first WinUI 3 desktop shell.
+- Non-destructive video/image/frame-sequence import.
+- Deterministic FFmpeg extraction.
+- Local background removal through an isolated `rembg` worker.
+- Automatic frame optimization with Raw/Compact/Balanced/Smooth modes.
+- Smooth optimized preview playback with cached preview frames.
+- Optional destructive cleanup of disabled frame files.
+- SkiaSharp normalization and pivot-aware sheet composition.
+- Loop analysis plus manual loop control.
+- PNG sprite sheet, JSON metadata, and optional frame export.
+- Atomic project persistence and workspace path containment.
+- Cancellation, diagnostics, per-job logs, and stage invalidation.
+- Core/Application/Infrastructure/Architecture/Pipeline test projects.
+- Windows CI and self-contained x64 packaging.
 
-- WinUI 3 shell for the eight-stage pipeline;
-- create/open/save/autosave project sessions;
-- non-destructive image, video, and PNG/WebP frame-sequence import;
-- source decode validation before replacing valid project state;
-- deterministic FFmpeg extraction with staging before artifact replacement;
-- local background removal through an isolated `rembg` worker;
-- SkiaSharp normalization with contain/cover/original fit, auto-trim, nine anchors, and per-frame pivot metadata;
-- frame enable/disable, reorder, duplicate, delete, reset, and per-frame duration editing;
-- loop seam analysis, recommendations, manual boundaries, and preview playback;
-- deterministic sheet layout with explicit maximum dimensions and no silent downscale;
-- PNG spritesheet, JSON metadata, and optional individual PNG export;
-- canonical immutable export history plus settings/frame fingerprinting;
-- relative artifact path containment checks when loading projects;
-- per-job logging, cancellation, FFmpeg/rembg/workspace diagnostics;
-- stage-state checks that distinguish missing physical artifacts from valid cached/exported artifacts;
-- Core/Application/Infrastructure/Architecture test projects;
-- pipeline integration tests for real FFmpeg frame extraction and golden JSON metadata output.
+## Release hardening
 
-## Validation boundary
-Windows CI is now part of the repository. On September 20, 2026, GitHub Actions on `windows-latest` with .NET 10 successfully completed:
+The public beta hardening layer adds:
 
-- `dotnet restore SpriteForge.sln`;
-- Release x64 solution build, including WinUI/XAML compilation;
-- Core tests;
-- Application tests;
-- Infrastructure tests;
-- Architecture tests;
-- pipeline integration tests using FFmpeg 9.0.1;
-- golden JSON metadata export verification.
+- separate runtime prerequisite checks that do not require the .NET SDK;
+- 2,000-frame extraction safety cap;
+- 1,024 px preview decode cap before images enter the preview cache;
+- 512 MiB raw RGBA sheet-allocation guard;
+- explicit application version metadata;
+- versioned package names and SHA-256 checksum files;
+- tag-driven GitHub Release automation;
+- SECURITY, CHANGELOG, release, and third-party notice documents.
 
-The integration pass also caught and fixed obsolete FFmpeg `-vsync` usage by migrating frame extraction to `-fps_mode passthrough`.
+## Current distribution boundary
 
-The implementation pass also completed:
+The application package is self-contained for .NET and Windows App SDK, but beta users still need:
 
-- XAML, project files, props, and manifest-style XML parsing;
-- XAML event-handler existence checks;
-- coarse C# delimiter/static structure checks;
-- project-reference architecture boundary checks;
-- path-safety pattern checks;
-- Python worker `py_compile`;
-- FFmpeg presence and extraction smoke testing.
+- FFmpeg on PATH;
+- Python 3.11+ for Cutout;
+- a one-time local `rembg` worker setup.
 
-The remaining release validation is runtime application launch and the end-to-end V1 workflow with real media, FFmpeg, and the local `rembg` worker on a Windows desktop environment.
+That is acceptable for a technical public beta, but not the intended stable-1.0 onboarding experience.
 
-## Automated V1 acceptance
-Windows CI now executes an end-to-end deterministic pipeline acceptance scenario covering video import, FFmpeg extraction, Cutout contract execution with alpha output, normalization, loop analysis, sheet preview, PNG/JSON/individual-frame export, project save/reopen, and SHA-256 equality of repeated exports.
+## Stable 1.0 remaining work
 
-The background-removal process adapter is integration-tested independently with a deterministic worker fixture, while the production Python worker is syntax-checked in CI. Real `rembg` model execution remains a manual desktop gate because first-run model availability/download is external to the repository.
+1. Decide and document the project license.
+2. Add final application branding/icon assets.
+3. Decide installer format and code-signing strategy.
+4. Reduce or eliminate manual FFmpeg/Python setup.
+5. Add cache/artifact garbage collection and retention controls.
+6. Improve crash recovery and end-user diagnostics.
+7. Complete accessibility and keyboard-navigation audit.
+8. Define update delivery/rollback behavior.
 
-See `docs/V1-ACCEPTANCE.md` for the automated and manual release boundary.
+## Engineering note
+
+The following files are already large enough that future features should be split by responsibility rather than appended:
+
+- `SpritePipelineService.cs`;
+- `DesktopWorkflowController.Pipeline.cs`;
+- `DesktopWorkflowController.State.cs`;
+- `SkiaFrameOptimizer.cs`.
+
+Do not add another broad feature to these files without extracting a focused service/module first.
+
+## Validation
+
+The stable frame-optimization baseline on `main` passed local QA and Windows CI. The release-hardening branch must pass the same build/test/package gate before merge.
+
+See `docs/V1-ACCEPTANCE.md` and `docs/RELEASE.md`.
