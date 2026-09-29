@@ -11,7 +11,14 @@ if ([string]::IsNullOrWhiteSpace($PackageRoot)) {
     if (Test-Path (Join-Path $Root 'SpriteForge.App.exe')) {
         $PackageRoot = $Root
     } else {
-        $PackageRoot = Join-Path $Root 'artifacts\SpriteForge-v1-rc-win-x64'
+        $ArtifactsRoot = Join-Path $Root 'artifacts'
+        $Candidate = Get-ChildItem -Path $ArtifactsRoot -Directory -Filter 'SpriteForge-*-win-x64' -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTimeUtc -Descending |
+            Select-Object -First 1
+        if (-not $Candidate) {
+            throw "No packaged SpriteForge win-x64 build was found under $ArtifactsRoot. Run .\scripts\package-rc.ps1 first."
+        }
+        $PackageRoot = $Candidate.FullName
     }
 } elseif (-not [System.IO.Path]::IsPathRooted($PackageRoot)) {
     $PackageRoot = Join-Path $Root $PackageRoot
@@ -20,7 +27,7 @@ if ([string]::IsNullOrWhiteSpace($PackageRoot)) {
 $PackageRoot = [System.IO.Path]::GetFullPath($PackageRoot)
 $ExePath = Join-Path $PackageRoot 'SpriteForge.App.exe'
 if (-not (Test-Path $ExePath)) {
-    throw "SpriteForge RC executable was not found at $ExePath. Run .\scripts\package-rc.ps1 first."
+    throw "SpriteForge executable was not found at $ExePath."
 }
 
 $Existing = @(Get-Process -Name 'SpriteForge.App' -ErrorAction SilentlyContinue)
@@ -29,15 +36,15 @@ if ($Existing.Count -gt 0) {
     throw "SpriteForge is already running (PID: $Ids). Close it before running a clean startup smoke test."
 }
 
-$VerifyScript = Join-Path $PackageRoot 'scripts\verify-prereqs.ps1'
+$VerifyScript = Join-Path $PackageRoot 'scripts\verify-runtime-prereqs.ps1'
 if (Test-Path $VerifyScript) {
-    Write-Host "== Verifying RC runtime prerequisites =="
+    Write-Host "== Verifying packaged runtime prerequisites =="
     & $VerifyScript -Strict -RequireWorker
 }
 
 $Process = $null
 try {
-    Write-Host "Launching SpriteForge RC..."
+    Write-Host "Launching SpriteForge..."
     $Process = Start-Process -FilePath $ExePath -WorkingDirectory $PackageRoot -PassThru
     Start-Sleep -Seconds $StartupSeconds
     $Process.Refresh()
