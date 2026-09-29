@@ -7,33 +7,43 @@ namespace SpriteForge.Pipeline.Tests;
 public sealed class SkiaFrameOptimizerTests
 {
     [Fact]
-    public async Task Balanced_CollapsesStaticHolds_AndPreservesTotalDuration()
+    public async Task Balanced_TrimsStaticHolds_AndPreservesActiveMotionTiming()
     {
         var root = CreateTempDirectory();
         try
         {
-            var colors = new[] { SKColors.Red, SKColors.Blue, SKColors.Green, SKColors.Yellow, SKColors.Purple };
+            var colors = new[]
+            {
+                SKColors.Red,
+                SKColors.Blue,
+                SKColors.Green,
+                SKColors.Yellow,
+                SKColors.Purple
+            };
             var paths = new List<string>();
             foreach (var color in colors)
+            {
                 for (var repeat = 0; repeat < 4; repeat++)
                     paths.Add(CreateSolidFrame(root, paths.Count, color));
+            }
 
             var result = await new SkiaFrameOptimizer().OptimizeAsync(
-                new FrameOptimizationRequest(paths, 80, FrameOptimizationSettings.BalancedDefault),
+                new FrameOptimizationRequest(
+                    paths,
+                    80,
+                    FrameOptimizationSettings.BalancedDefault),
                 null,
                 TestContext.Current.CancellationToken);
 
-            Assert.Equal(colors.Length, result.EnabledCount);
-            Assert.True(result.Decisions[0].Enabled);
-            Assert.True(result.Decisions[4].Enabled);
-            Assert.True(result.Decisions[8].Enabled);
-            Assert.True(result.Decisions[12].Enabled);
-            Assert.True(result.Decisions[16].Enabled);
-
-            var totalDuration = result.Decisions
+            var enabled = result.Decisions
                 .Where(decision => decision.Enabled)
-                .Sum(decision => decision.DurationMs);
-            Assert.Equal(paths.Count * 80d, totalDuration, precision: 6);
+                .ToArray();
+
+            Assert.Equal([3, 4, 8, 12, 16, 17], enabled.Select(x => x.SourceIndex));
+            Assert.Equal(80d, enabled[^1].DurationMs);
+
+            var totalDuration = enabled.Sum(decision => decision.DurationMs);
+            Assert.Equal(15 * 80d, totalDuration, precision: 6);
         }
         finally
         {
@@ -42,7 +52,7 @@ public sealed class SkiaFrameOptimizerTests
     }
 
     [Fact]
-    public async Task Balanced_DoesNotForceFramesIntoStaticTail()
+    public async Task Balanced_DoesNotInheritLongStaticPreOrPostRoll()
     {
         var root = CreateTempDirectory();
         try
@@ -64,13 +74,23 @@ public sealed class SkiaFrameOptimizerTests
             }
 
             var result = await new SkiaFrameOptimizer().OptimizeAsync(
-                new FrameOptimizationRequest(paths, 80, FrameOptimizationSettings.BalancedDefault),
+                new FrameOptimizationRequest(
+                    paths,
+                    80,
+                    FrameOptimizationSettings.BalancedDefault),
                 null,
                 TestContext.Current.CancellationToken);
 
-            var enabled = result.Decisions.Where(decision => decision.Enabled).Select(decision => decision.SourceIndex).ToArray();
-            Assert.DoesNotContain(enabled, index => index > 10);
-            Assert.True(enabled.Length <= 10);
+            var enabled = result.Decisions
+                .Where(decision => decision.Enabled)
+                .ToArray();
+
+            Assert.Equal(5, enabled[0].SourceIndex);
+            Assert.Equal(11, enabled[^1].SourceIndex);
+            Assert.All(enabled, decision =>
+                Assert.InRange(decision.SourceIndex, 5, 11));
+            Assert.Equal(80d, enabled[^1].DurationMs);
+            Assert.Equal(7 * 80d, enabled.Sum(decision => decision.DurationMs), precision: 6);
         }
         finally
         {
@@ -85,10 +105,16 @@ public sealed class SkiaFrameOptimizerTests
         try
         {
             var paths = Enumerable.Range(0, 5)
-                .Select(index => CreateSolidFrame(root, index, SKColors.CornflowerBlue))
+                .Select(index => CreateSolidFrame(
+                    root,
+                    index,
+                    SKColors.CornflowerBlue))
                 .ToArray();
             var result = await new SkiaFrameOptimizer().OptimizeAsync(
-                new FrameOptimizationRequest(paths, 50, new FrameOptimizationSettings("raw", 0.96, true)),
+                new FrameOptimizationRequest(
+                    paths,
+                    50,
+                    new FrameOptimizationSettings("raw", 0.96, true)),
                 null,
                 TestContext.Current.CancellationToken);
 
@@ -105,7 +131,10 @@ public sealed class SkiaFrameOptimizerTests
         }
     }
 
-    private static string CreateSolidFrame(string root, int index, SKColor color)
+    private static string CreateSolidFrame(
+        string root,
+        int index,
+        SKColor color)
     {
         var path = Path.Combine(root, $"frame_{index:D3}.png");
         using var bitmap = new SKBitmap(32, 32);
@@ -120,7 +149,10 @@ public sealed class SkiaFrameOptimizerTests
 
     private static string CreateTempDirectory()
     {
-        var root = Path.Combine(Path.GetTempPath(), "spriteforge-frame-optimizer", Guid.NewGuid().ToString("N"));
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            "spriteforge-frame-optimizer",
+            Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
         return root;
     }
