@@ -79,7 +79,6 @@ jobs:
         run: dotnet test tests/SpriteForge.Pipeline.Tests/SpriteForge.Pipeline.Tests.csproj -c Release --no-restore --verbosity normal
 
       - name: Package public beta
-        if: github.event_name != 'pull_request'
         shell: pwsh
         run: .\scripts\package-rc.ps1 -Version 0.9.0-beta.1 -Channel beta
 
