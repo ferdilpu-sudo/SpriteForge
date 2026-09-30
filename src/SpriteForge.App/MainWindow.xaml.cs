@@ -133,18 +133,30 @@ public sealed partial class MainWindow : Window
 
     private async Task RunStartupDiagnosticsAsync()
     {
+        StartupLog.Write("Startup diagnostics: FFmpeg check started.");
         var ffmpeg = await _services.FfmpegDiagnostics.CheckAsync();
-        var background = await _services.BackgroundRemovalDiagnostics.CheckAsync();
+        StartupLog.Write($"Startup diagnostics: FFmpeg check completed. Passed={ffmpeg.Passed}.");
+
+        // Do not import rembg/ONNX during app startup. That check can initialize native
+        // dependencies and is intentionally reserved for the explicit Diagnostics action.
+        var background = _services.BackgroundRemovalDiagnostics.CheckInstallation();
+        StartupLog.Write(
+            $"Startup diagnostics: background installation check completed. Passed={background.Passed}.");
+
         var workspacePath = _workflow.WorkspaceDiagnosticPath;
+        StartupLog.Write($"Startup diagnostics: workspace check started. Path={workspacePath ?? "<none>"}.");
         var workspace = string.IsNullOrWhiteSpace(workspacePath)
             ? null
             : await _services.WorkspaceDiagnostics.CheckWriteAccessAsync(workspacePath);
+        StartupLog.Write(
+            $"Startup diagnostics: workspace check completed. Passed={workspace?.Passed.ToString() ?? "N/A"}.");
 
         var issues = new List<string>();
         if (!ffmpeg.Passed) issues.Add("FFmpeg missing");
         if (!background.Passed) issues.Add("background worker setup required");
         if (workspace is { Passed: false }) issues.Add("workspace is not writable");
-        if (issues.Count > 0) ViewModel.JobStatus.Message = $"Local setup: {string.Join(" · ", issues)}";
+        if (issues.Count > 0)
+            ViewModel.JobStatus.Message = $"Local setup: {string.Join(" · ", issues)}";
     }
 
     private async void OnPreviewPlayClick(object sender, RoutedEventArgs e)
