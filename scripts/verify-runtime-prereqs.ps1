@@ -42,6 +42,7 @@ function Test-RuntimeCommand {
 }
 
 $null = Test-RuntimeCommand 'ffmpeg' @('-version')
+$null = Test-RuntimeCommand 'ffprobe' @('-version')
 $null = Test-RuntimeCommand 'python' @('--version')
 
 $WorkerPython = Join-Path $env:LOCALAPPDATA 'SpriteForge\worker\.venv\Scripts\python.exe'
