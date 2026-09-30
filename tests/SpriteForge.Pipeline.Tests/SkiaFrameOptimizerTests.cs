@@ -137,6 +137,37 @@ public sealed class SkiaFrameOptimizerTests
         }
     }
 
+
+    [Fact]
+    public async Task Balanced_StaticFrames_CollapseToSingleFrame()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var paths = Enumerable.Range(0, 12)
+                .Select(index => CreateSolidFrame(
+                    root,
+                    index,
+                    new SKColor(80, 80, 80)))
+                .ToArray();
+
+            var result = await new SkiaFrameOptimizer().OptimizeAsync(
+                new FrameOptimizationRequest(
+                    paths,
+                    80,
+                    FrameOptimizationSettings.BalancedDefault),
+                null,
+                TestContext.Current.CancellationToken);
+
+            Assert.Equal(1, result.EnabledCount);
+            Assert.True(result.Decisions[0].Enabled);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     [Fact]
     public async Task Raw_KeepsEveryFrame_WithOriginalTiming()
     {
