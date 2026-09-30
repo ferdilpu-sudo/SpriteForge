@@ -112,10 +112,9 @@ public sealed partial class MainWindow : Window
             ViewModel.JobStatus.Message = "Checking local dependencies…";
             var ffmpeg = await _services.FfmpegDiagnostics.CheckAsync();
             var background = await _services.BackgroundRemovalDiagnostics.CheckAsync();
-            var workspacePath = _workflow.WorkspaceDiagnosticPath;
-            var workspace = string.IsNullOrWhiteSpace(workspacePath)
+            var workspace = _workflow.Workspace is null
                 ? null
-                : await _services.WorkspaceDiagnostics.CheckWriteAccessAsync(workspacePath);
+                : await _services.WorkspaceDiagnostics.CheckWriteAccessAsync(_workflow.Workspace.RootPath);
             var workspaceState = workspace is null ? "N/A" : workspace.Passed ? "OK" : "Read-only";
             ViewModel.JobStatus.Message =
                 $"FFmpeg: {(ffmpeg.Passed ? "OK" : "Missing")} · Background: {(background.Passed ? "OK" : "Setup required")} · Workspace: {workspaceState}";
@@ -126,10 +125,9 @@ public sealed partial class MainWindow : Window
     {
         var ffmpeg = await _services.FfmpegDiagnostics.CheckAsync();
         var background = await _services.BackgroundRemovalDiagnostics.CheckAsync();
-        var workspacePath = _workflow.WorkspaceDiagnosticPath;
-        var workspace = string.IsNullOrWhiteSpace(workspacePath)
+        var workspace = _workflow.Workspace is null
             ? null
-            : await _services.WorkspaceDiagnostics.CheckWriteAccessAsync(workspacePath);
+            : await _services.WorkspaceDiagnostics.CheckWriteAccessAsync(_workflow.Workspace.RootPath);
 
         var issues = new List<string>();
         if (!ffmpeg.Passed) issues.Add("FFmpeg missing");
