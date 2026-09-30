@@ -11,6 +11,8 @@ public partial class App : Microsoft.UI.Xaml.Application
     public App()
     {
         UnhandledException += OnUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         try
         {
@@ -46,5 +48,23 @@ public partial class App : Microsoft.UI.Xaml.Application
         Microsoft.UI.Xaml.UnhandledExceptionEventArgs args)
     {
         StartupLog.Write("Unhandled WinUI exception.", args.Exception);
+    }
+
+    private static void OnDomainUnhandledException(
+        object? sender,
+        System.UnhandledExceptionEventArgs args)
+    {
+        var exception = args.ExceptionObject as Exception
+            ?? new InvalidOperationException($"Unhandled non-Exception object: {args.ExceptionObject}");
+        StartupLog.Write(
+            $"Unhandled AppDomain exception. IsTerminating={args.IsTerminating}.",
+            exception);
+    }
+
+    private static void OnUnobservedTaskException(
+        object? sender,
+        UnobservedTaskExceptionEventArgs args)
+    {
+        StartupLog.Write("Unobserved task exception.", args.Exception);
     }
 }
