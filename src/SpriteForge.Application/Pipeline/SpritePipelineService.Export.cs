@@ -33,6 +33,7 @@ public sealed partial class SpritePipelineService
         var externalFramesDirectory = Path.Combine(destination, safeName + "_frames");
         EnsureExternalTargetsAvailable(externalSheet, externalMetadata, externalFramesDirectory, request.IncludeIndividualFrames);
         var externalFramesDirectoryExisted = Directory.Exists(externalFramesDirectory);
+        IReadOnlyList<string> externalFramePaths = [];
 
         var sequence = sequenceSelector.Select(project);
         if (sequence.Count == 0) throw new InvalidOperationException("No frames are available for export.");
@@ -68,7 +69,7 @@ public sealed partial class SpritePipelineService
 
             await CopyFileAsync(canonicalSheet, externalSheet, cancellationToken).ConfigureAwait(false);
             await CopyFileAsync(canonicalMetadata, externalMetadata, cancellationToken).ConfigureAwait(false);
-            var externalFramePaths = request.IncludeIndividualFrames
+            externalFramePaths = request.IncludeIndividualFrames
                 ? await CopyFrameExportsAsync(canonicalFramePaths, externalFramesDirectory, cancellationToken).ConfigureAwait(false)
                 : [];
 
@@ -114,7 +115,10 @@ public sealed partial class SpritePipelineService
             TryDeleteDirectory(canonicalDirectory);
             TryDeleteFile(externalSheet);
             TryDeleteFile(externalMetadata);
-            if (request.IncludeIndividualFrames && !externalFramesDirectoryExisted) TryDeleteDirectory(externalFramesDirectory);
+            foreach (var path in externalFramePaths)
+                TryDeleteFile(path);
+            if (request.IncludeIndividualFrames && !externalFramesDirectoryExisted)
+                TryDeleteDirectory(externalFramesDirectory);
             throw;
         }
     }
