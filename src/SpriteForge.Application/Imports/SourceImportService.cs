@@ -1,11 +1,17 @@
+using SpriteForge.Application.Artifacts;
 using SpriteForge.Core.Contracts;
 using SpriteForge.Core.Enums;
 using SpriteForge.Core.Models;
 
 namespace SpriteForge.Application.Imports;
 
-public sealed class SourceImportService(IFileHashService hashService, ISourceAssetValidator assetValidator)
+public sealed class SourceImportService(
+    IFileHashService hashService,
+    ISourceAssetValidator assetValidator,
+    ArtifactFileCleanupService? artifactCleanup = null)
 {
+    private readonly ArtifactFileCleanupService _artifactCleanup =
+        artifactCleanup ?? new ArtifactFileCleanupService();
     private static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".png", ".jpg", ".jpeg", ".webp"
@@ -81,7 +87,7 @@ public sealed class SourceImportService(IFileHashService hashService, ISourceAss
             throw;
         }
 
-        ResetProjectForNewSource(project);
+        ResetProjectForNewSource(project, workspace);
         project.Artifacts.AddRange(artifacts);
         project.Frames.AddRange(frames);
         project.Source = new ProjectSource("frame_sequence", artifacts[0].Id);
@@ -108,7 +114,7 @@ public sealed class SourceImportService(IFileHashService hashService, ISourceAss
         await CopyFileAsync(sourcePath, destination, cancellationToken).ConfigureAwait(false);
         var artifact = await CreateArtifactAsync(destination, artifactKind, workspace, cancellationToken).ConfigureAwait(false);
 
-        ResetProjectForNewSource(project);
+        ResetProjectForNewSource(project, workspace);
         project.Artifacts.Add(artifact);
         project.Source = new ProjectSource(sourceKind, artifact.Id);
         return artifact;
@@ -133,16 +139,29 @@ public sealed class SourceImportService(IFileHashService hashService, ISourceAss
             DateTimeOffset.UtcNow);
     }
 
-    private static void ResetProjectForNewSource(ProjectDocument project)
+    private void ResetProjectForNewSource(
+        ProjectDocument project,
+        ProjectWorkspacePaths workspace)
     {
+        var superseded = project.Artifacts
+            .Where(artifact => artifact.Kind is not (
+                ArtifactKind.SpriteSheet or
+                ArtifactKind.Metadata or
+                ArtifactKind.ExportedFrame))
+            .ToArray();
+
+        _artifactCleanup.DeleteFiles(workspace, superseded);
+
         project.Source = null;
         project.Generation = null;
         project.Frames.Clear();
-        project.Artifacts.RemoveAll(artifact => artifact.Kind is not (
-            ArtifactKind.SpriteSheet or
-            ArtifactKind.Metadata or
-            ArtifactKind.ExportedFrame));
-        project.Loop = project.Loop with { StartFrameId = null, EndFrameId = null, Recommended = false };
+        project.Artifacts.RemoveAll(artifact => superseded.Any(item => item.Id == artifact.Id));
+        project.Loop = project.Loop with
+        {
+            StartFrameId = null,
+            EndFrameId = null,
+            Recommended = false
+        };
     }
 
     private static async Task CopyFileAsync(string source, string destination, CancellationToken cancellationToken)
