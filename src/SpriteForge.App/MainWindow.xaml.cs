@@ -29,6 +29,7 @@ public sealed partial class MainWindow : Window
         ConfigurePreviewTimer();
         Title = "SpriteForge";
         ApplyWindowIcon();
+        Closed += (_, _) => StartupLog.Write("Main window closed.");
     }
 
     private void ApplyWindowIcon()
@@ -53,14 +54,22 @@ public sealed partial class MainWindow : Window
     {
         if (_initialized) return;
         _initialized = true;
+        StartupLog.Write("Root loaded entered.");
 
         await _workflow.ExecuteUiOperationAsync("Initialize SpriteForge", async () =>
         {
             await _workflow.InitializeAsync();
+            StartupLog.Write("Workflow initialized.");
+
             StageList.SelectedItem = ViewModel.SelectedStage;
             ShowSelectedStage();
+            StartupLog.Write("Initial stage rendered.");
+
             await RunStartupDiagnosticsAsync();
+            StartupLog.Write("Startup diagnostics completed.");
         });
+
+        StartupLog.Write("Root loaded completed.");
     }
 
     private void OnStageSelectionChanged(object sender, SelectionChangedEventArgs e)
