@@ -253,11 +253,23 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
         var maximum = values[^1];
 
         if (maximum >= configuredThreshold) return configuredThreshold;
-        if (maximum <= median * 1.5 || maximum - median < 0.005)
+
+        const double minimumAdaptiveThreshold = 0.005;
+        if (maximum < minimumAdaptiveThreshold)
             return configuredThreshold;
 
+        // Continuous subtle motion often has a tight distribution where max is close
+        // to the median. Keeping the configured threshold in that case incorrectly
+        // classifies the whole clip as static, so adapt below the median instead.
+        if (maximum <= median * 1.5 || maximum - median < minimumAdaptiveThreshold)
+        {
+            return Math.Max(
+                minimumAdaptiveThreshold,
+                median * 0.8);
+        }
+
         return Math.Max(
-            0.005,
+            minimumAdaptiveThreshold,
             median + (maximum - median) * 0.25);
     }
 
