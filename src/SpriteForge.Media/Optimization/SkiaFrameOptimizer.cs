@@ -254,7 +254,7 @@ public sealed class SkiaFrameOptimizer : IFrameOptimizer
 
         if (maximum >= configuredThreshold) return configuredThreshold;
 
-        const double minimumAdaptiveThreshold = 0.005;
+        const double minimumAdaptiveThreshold = 0.001;
         if (maximum < minimumAdaptiveThreshold)
             return configuredThreshold;
 
