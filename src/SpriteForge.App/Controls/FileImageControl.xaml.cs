@@ -42,7 +42,6 @@ public sealed partial class FileImageControl : UserControl
         if (loadVersion != Volatile.Read(ref _loadVersion))
             return;
 
-        if (bitmap is not null)
-            ImageElement.Source = bitmap;
+        ImageElement.Source = bitmap;
     }
 }
