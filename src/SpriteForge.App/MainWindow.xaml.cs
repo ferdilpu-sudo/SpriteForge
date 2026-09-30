@@ -133,9 +133,10 @@ public sealed partial class MainWindow : Window
 
     private async Task RunStartupDiagnosticsAsync()
     {
-        StartupLog.Write("Startup diagnostics: FFmpeg check started.");
-        var ffmpeg = await _services.FfmpegDiagnostics.CheckAsync();
-        StartupLog.Write($"Startup diagnostics: FFmpeg check completed. Passed={ffmpeg.Passed}.");
+        StartupLog.Write("Startup diagnostics: FFmpeg installation check started.");
+        var ffmpeg = _services.FfmpegDiagnostics.CheckInstallation();
+        StartupLog.Write(
+            $"Startup diagnostics: FFmpeg installation check completed. Passed={ffmpeg.Passed}.");
 
         // Do not import rembg/ONNX during app startup. That check can initialize native
         // dependencies and is intentionally reserved for the explicit Diagnostics action.
