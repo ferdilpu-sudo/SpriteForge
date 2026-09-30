@@ -106,6 +106,68 @@ public sealed class SourceImportServiceTests
         }
     }
 
+
+    [Fact]
+    public async Task ImportImage_RemovesSupersededSourceFileFromWorkspace()
+    {
+        var root = Path.Combine(
+            Path.GetTempPath(),
+            "spriteforge-import-tests",
+            Guid.NewGuid().ToString("N"));
+        var workspace = new ProjectWorkspacePaths(Path.Combine(root, "project"));
+        Directory.CreateDirectory(workspace.Source);
+
+        try
+        {
+            var oldPath = Path.Combine(workspace.Source, "old.png");
+            await File.WriteAllBytesAsync(
+                oldPath,
+                [9, 9, 9],
+                TestContext.Current.CancellationToken);
+            var oldArtifact = new ArtifactRecord(
+                Guid.NewGuid(),
+                SpriteForge.Core.Enums.ArtifactKind.SourceImage,
+                workspace.ToRelative(oldPath),
+                "image/png",
+                null,
+                null,
+                null,
+                "old-hash",
+                DateTimeOffset.UtcNow);
+
+            var project = new ProjectDocument
+            {
+                Source = new ProjectSource("image", oldArtifact.Id)
+            };
+            project.Artifacts.Add(oldArtifact);
+
+            var input = Path.Combine(root, "replacement.png");
+            await File.WriteAllBytesAsync(
+                input,
+                [1, 2, 3],
+                TestContext.Current.CancellationToken);
+
+            var service = new SourceImportService(
+                new TestHashService(),
+                new AcceptAllValidator());
+
+            await service.ImportImageAsync(
+                project,
+                workspace,
+                input,
+                TestContext.Current.CancellationToken);
+
+            Assert.False(File.Exists(oldPath));
+            Assert.DoesNotContain(project.Artifacts, artifact => artifact.Id == oldArtifact.Id);
+            Assert.NotNull(project.Source);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
     [Fact]
     public async Task ImportImage_PreservesImmutableExportHistory()
     {
