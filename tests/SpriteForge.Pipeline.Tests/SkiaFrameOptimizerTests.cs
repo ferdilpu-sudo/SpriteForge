@@ -104,6 +104,70 @@ public sealed class SkiaFrameOptimizerTests
         }
     }
 
+
+    [Fact]
+    public async Task Balanced_PreservesSubtleContinuousMotion()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var paths = Enumerable.Range(0, 18)
+                .Select(index => CreateMovingSquareFrame(root, index))
+                .ToArray();
+
+            var result = await new SkiaFrameOptimizer().OptimizeAsync(
+                new FrameOptimizationRequest(
+                    paths,
+                    80,
+                    FrameOptimizationSettings.BalancedDefault),
+                null,
+                TestContext.Current.CancellationToken);
+
+            var enabled = result.Decisions
+                .Where(decision => decision.Enabled)
+                .ToArray();
+
+            Assert.True(enabled.Length > 1);
+            Assert.InRange(enabled.Length, 3, 10);
+            Assert.True(enabled[^1].SourceIndex > enabled[0].SourceIndex);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+
+    [Fact]
+    public async Task Balanced_StaticFrames_CollapseToSingleFrame()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var paths = Enumerable.Range(0, 12)
+                .Select(index => CreateSolidFrame(
+                    root,
+                    index,
+                    new SKColor(80, 80, 80)))
+                .ToArray();
+
+            var result = await new SkiaFrameOptimizer().OptimizeAsync(
+                new FrameOptimizationRequest(
+                    paths,
+                    80,
+                    FrameOptimizationSettings.BalancedDefault),
+                null,
+                TestContext.Current.CancellationToken);
+
+            Assert.Equal(1, result.EnabledCount);
+            Assert.True(result.Decisions[0].Enabled);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     [Fact]
     public async Task Raw_KeepsEveryFrame_WithOriginalTiming()
     {
@@ -136,6 +200,24 @@ public sealed class SkiaFrameOptimizerTests
         {
             Directory.Delete(root, recursive: true);
         }
+    }
+
+
+    private static string CreateMovingSquareFrame(string root, int index)
+    {
+        var path = Path.Combine(root, $"subtle_{index:D3}.png");
+        using var bitmap = new SKBitmap(64, 64);
+        using var canvas = new SKCanvas(bitmap);
+        canvas.Clear(new SKColor(80, 80, 80));
+
+        using var paint = new SKPaint { Color = new SKColor(96, 96, 96) };
+        canvas.DrawRect(8 + index, 24, 18, 18, paint);
+
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        using var stream = File.Create(path);
+        data.SaveTo(stream);
+        return path;
     }
 
     private static string CreateSolidFrame(

@@ -21,7 +21,7 @@ The packaged Windows build is self-contained for .NET and Windows App SDK. End u
 External runtime prerequisites:
 
 - Windows 10 1809+ or Windows 11.
-- FFmpeg available on `PATH`.
+- FFmpeg **and FFprobe** available on `PATH`.
 - Python 3.11+ only when using Cutout/background removal.
 - The local `rembg` worker, installed once with the included setup script.
 
@@ -79,7 +79,7 @@ Modes:
 - **Balanced**: up to 10 keyframes, default.
 - **Smooth**: up to 16 keyframes.
 
-The optimizer uses localized visual motion, preserves strong motion peaks, fills temporal gaps inside the active motion range, and normalizes optimized playback timing.
+The optimizer uses localized RGB motion, preserves subtle continuous movement and strong motion peaks, fills temporal gaps inside the active motion range, and normalizes optimized playback timing.
 
 Disabled frames can be reviewed before using **Delete disabled frames…** to remove unused frame files from the project.
 
@@ -88,6 +88,8 @@ Disabled frames can be reviewed before using **Delete disabled frames…** to re
 Public beta guardrails prevent unusually large jobs from consuming unreasonable resources:
 
 - candidate extraction limit: **2,000 frames**;
+- video extraction preflight rejects work above a **6 GiB decoded RGBA pixel budget**;
+- a single decoded RGBA video frame is capped at **256 MiB**;
 - extraction with a known range is rejected before FFmpeg starts when the estimate is over the limit;
 - unknown-duration extraction is capped with a sentinel frame and fails clearly if the limit is exceeded;
 - preview images are decoded to a maximum dimension of **1,024 px** before entering the preview cache;

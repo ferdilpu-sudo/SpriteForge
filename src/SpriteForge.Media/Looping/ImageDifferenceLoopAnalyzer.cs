@@ -5,6 +5,7 @@ namespace SpriteForge.Media.Looping;
 
 public sealed class ImageDifferenceLoopAnalyzer : ILoopAnalyzer
 {
+    private const int MaxSamplesPerEdge = 48;
     private readonly ImageDifferenceScorer _scorer = new();
 
     public async Task<IReadOnlyList<LoopCandidate>> AnalyzeAsync(
@@ -16,20 +17,47 @@ public sealed class ImageDifferenceLoopAnalyzer : ILoopAnalyzer
         if (enabled.Length < 4) return [];
 
         var edgeWindow = Math.Max(1, enabled.Length / 4);
-        var candidates = new List<LoopCandidate>();
-        for (var startIndex = 0; startIndex < edgeWindow; startIndex++)
-        {
-            for (var endIndex = Math.Max(startIndex + 3, enabled.Length - edgeWindow); endIndex < enabled.Length; endIndex++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var start = enabled[startIndex];
-                var end = enabled[endIndex];
-                var startPath = resolveFramePath(start.Id);
-                var endPath = resolveFramePath(end.Id);
-                if (startPath is null || endPath is null || !File.Exists(startPath) || !File.Exists(endPath)) continue;
+        var startIndices = SampleIndices(0, edgeWindow - 1, MaxSamplesPerEdge);
+        var endIndices = SampleIndices(
+            Math.Max(3, enabled.Length - edgeWindow),
+            enabled.Length - 1,
+            MaxSamplesPerEdge);
 
-                var score = await _scorer.ScoreAsync(startPath, endPath, cancellationToken).ConfigureAwait(false);
-                candidates.Add(new LoopCandidate(start.Id, end.Id, score, endIndex - startIndex + 1));
+        var requiredIndices = startIndices
+            .Concat(endIndices)
+            .Distinct()
+            .OrderBy(index => index)
+            .ToArray();
+
+        var samples = new Dictionary<int, ImageDifferenceSample>(requiredIndices.Length);
+        foreach (var index in requiredIndices)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var path = resolveFramePath(enabled[index].Id);
+            if (path is null || !File.Exists(path)) continue;
+            samples[index] = await _scorer.LoadAsync(path, cancellationToken).ConfigureAwait(false);
+        }
+
+        var candidates = new List<LoopCandidate>();
+        foreach (var startIndex in startIndices)
+        {
+            if (!samples.TryGetValue(startIndex, out var startSample)) continue;
+
+            foreach (var endIndex in endIndices)
+            {
+                if (endIndex < startIndex + 3 ||
+                    !samples.TryGetValue(endIndex, out var endSample))
+                {
+                    continue;
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+                var score = _scorer.Score(startSample, endSample, cancellationToken);
+                candidates.Add(new LoopCandidate(
+                    enabled[startIndex].Id,
+                    enabled[endIndex].Id,
+                    score,
+                    endIndex - startIndex + 1));
             }
         }
 
@@ -38,5 +66,24 @@ public sealed class ImageDifferenceLoopAnalyzer : ILoopAnalyzer
             .ThenByDescending(candidate => candidate.FrameCount)
             .Take(5)
             .ToArray();
+    }
+
+    private static IReadOnlyList<int> SampleIndices(int start, int end, int maximum)
+    {
+        if (end < start) return [];
+
+        var count = end - start + 1;
+        if (count <= maximum)
+            return Enumerable.Range(start, count).ToArray();
+
+        var result = new SortedSet<int>();
+        for (var slot = 0; slot < maximum; slot++)
+        {
+            var position = start + (int)Math.Round(
+                slot * (end - start) / (double)(maximum - 1));
+            result.Add(position);
+        }
+
+        return result.ToArray();
     }
 }

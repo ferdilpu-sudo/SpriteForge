@@ -24,11 +24,13 @@ internal sealed class FrameDifferenceAnalyzer
             {
                 var a = first.GetPixel(x, y);
                 var b = second.GetPixel(x, y);
+
+                // Extracted video frames are opaque. Including their unchanged alpha channel
+                // dilutes visible RGB motion by 25% and can collapse subtle animation to one frame.
                 pixelDifferences[offset++] =
                     (Math.Abs(a.Red - b.Red) +
                      Math.Abs(a.Green - b.Green) +
-                     Math.Abs(a.Blue - b.Blue) +
-                     Math.Abs(a.Alpha - b.Alpha)) / (4d * 255d);
+                     Math.Abs(a.Blue - b.Blue)) / (3d * 255d);
             }
         }
 

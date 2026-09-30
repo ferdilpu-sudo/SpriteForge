@@ -8,6 +8,28 @@ public sealed class BackgroundRemovalDiagnosticService(
     string pythonPath,
     string workerScriptPath)
 {
+    public DiagnosticCheck CheckInstallation()
+    {
+        if (!File.Exists(workerScriptPath))
+            return new DiagnosticCheck(
+                "background_worker",
+                false,
+                "Background-removal worker script is missing.",
+                workerScriptPath);
+
+        if (!File.Exists(pythonPath))
+            return new DiagnosticCheck(
+                "background_worker",
+                false,
+                "Background-removal Python environment is not installed.",
+                pythonPath);
+
+        return new DiagnosticCheck(
+            "background_worker",
+            true,
+            "Background-removal worker is installed.");
+    }
+
     public async Task<DiagnosticCheck> CheckAsync(CancellationToken cancellationToken = default)
     {
         if (!File.Exists(workerScriptPath))

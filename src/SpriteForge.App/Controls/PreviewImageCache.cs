@@ -67,6 +67,7 @@ internal static class PreviewImageCache
             lock (Gate)
             {
                 Entries.Remove(path);
+                RemoveQueuedPath(path);
             }
             return null;
         }
@@ -87,6 +88,22 @@ internal static class PreviewImageCache
             bitmap.DecodePixelHeight = MaxDecodeDimension;
 
         return bitmap;
+    }
+
+    private static void RemoveQueuedPath(string path)
+    {
+        if (InsertionOrder.Count == 0) return;
+
+        var retained = InsertionOrder
+            .Where(candidate => !string.Equals(
+                candidate,
+                path,
+                StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        InsertionOrder.Clear();
+        foreach (var candidate in retained)
+            InsertionOrder.Enqueue(candidate);
     }
 
     private static void Trim()

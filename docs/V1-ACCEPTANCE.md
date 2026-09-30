@@ -48,7 +48,7 @@ The packaged runtime must not require the .NET SDK.
 
 - Launch the x64 packaged build.
 - Confirm the shell opens without an unhandled exception.
-- Confirm FFmpeg and workspace diagnostics are healthy.
+- Confirm FFmpeg/FFprobe and workspace diagnostics are healthy.
 - After worker setup, confirm Cutout diagnostics are healthy.
 
 ### 2. Real media workflow
@@ -81,10 +81,14 @@ Verify:
 - Optimized playback timing remains visually smooth.
 - Strong motion peaks remain represented.
 - Long static pre-roll/post-roll does not become a long playback pause.
+- A subtle idle/sway clip keeps multiple meaningful frames instead of collapsing to one.
+- Disabling, duplicating, or removing frames preserves the total enabled animation duration.
 
 ### 4. Resource guardrails
 
 - A known extraction range above 2,000 estimated frames must fail before FFmpeg starts.
+- A high-resolution extraction above the 6 GiB decoded-pixel budget must fail before FFmpeg starts.
+- A source whose single decoded RGBA frame exceeds 256 MiB must fail before extraction.
 - An unknown-duration extraction must stop safely if it crosses the 2,000-frame sentinel.
 - Large preview images must remain responsive because preview decoding is capped.
 - A sheet above the 512 MiB raw RGBA estimate must fail with an actionable message.
