@@ -2,6 +2,7 @@ using SpriteForge.Application.Artifacts;
 using SpriteForge.Application.Frames;
 using SpriteForge.Application.Sheets;
 using SpriteForge.Core.Contracts;
+using SpriteForge.Core.Models;
 
 namespace SpriteForge.Application.Pipeline;
 
