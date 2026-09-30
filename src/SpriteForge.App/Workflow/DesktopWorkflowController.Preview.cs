@@ -1,3 +1,5 @@
+using SpriteForge.Core.Enums;
+using SpriteForge.Core.Models;
 using SpriteForge.Presentation.Frames;
 
 namespace SpriteForge.App.Workflow;
