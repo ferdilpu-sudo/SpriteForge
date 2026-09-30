@@ -13,6 +13,7 @@ public sealed record AppServices(
     ProjectService Projects,
     SourceImportService SourceImports,
     FramePruningService FramePruning,
+    FrameTimingService FrameTiming,
     SpritePipelineService Pipeline,
     PipelineJobRunner Jobs,
     PipelineInvalidationService Invalidations,
