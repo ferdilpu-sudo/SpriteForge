@@ -1,3 +1,4 @@
+using SpriteForge.Application.Artifacts;
 using SpriteForge.Application.Frames;
 using SpriteForge.Application.Sheets;
 using SpriteForge.Core.Contracts;
@@ -17,8 +18,11 @@ public sealed class SpritePipelineService(
     IIndividualFrameExporter individualFrameExporter,
     IFileHashService hashService,
     SheetLayoutCalculator layoutCalculator,
-    FrameSequenceSelector sequenceSelector)
+    FrameSequenceSelector sequenceSelector,
+    ArtifactFileCleanupService? artifactCleanup = null)
 {
+    private readonly ArtifactFileCleanupService _artifactCleanup =
+        artifactCleanup ?? new ArtifactFileCleanupService();
     public async Task ExtractFramesAsync(
         ProjectDocument project,
         ProjectWorkspacePaths workspace,
@@ -69,7 +73,7 @@ public sealed class SpritePipelineService(
                     new FramePivot(0.5, 1)));
             }
 
-            RemoveTransientArtifacts(project, ArtifactKind.ExtractedFrame, ArtifactKind.TransparentFrame, ArtifactKind.NormalizedFrame, ArtifactKind.Thumbnail);
+            RemoveTransientArtifacts(project, workspace, ArtifactKind.ExtractedFrame, ArtifactKind.TransparentFrame, ArtifactKind.NormalizedFrame, ArtifactKind.Thumbnail);
             project.Artifacts.AddRange(stagedArtifacts);
             project.Frames.Clear();
             project.Frames.AddRange(stagedFrames);
@@ -127,7 +131,7 @@ public sealed class SpritePipelineService(
                     enabled.Length));
             }
 
-            RemoveTransientArtifacts(project, ArtifactKind.TransparentFrame, ArtifactKind.NormalizedFrame, ArtifactKind.Thumbnail);
+            RemoveTransientArtifacts(project, workspace, ArtifactKind.TransparentFrame, ArtifactKind.NormalizedFrame, ArtifactKind.Thumbnail);
             ClearFrameLinks(project, clearTransparent: true, clearNormalized: true, clearThumbnail: true);
             ApplyFrameArtifacts(project, staged, (links, id) => links with { Transparent = id });
             ResetLoopSelection(project);
@@ -184,7 +188,7 @@ public sealed class SpritePipelineService(
                     enabled.Length));
             }
 
-            RemoveTransientArtifacts(project, ArtifactKind.NormalizedFrame, ArtifactKind.Thumbnail);
+            RemoveTransientArtifacts(project, workspace, ArtifactKind.NormalizedFrame, ArtifactKind.Thumbnail);
             ClearFrameLinks(project, clearTransparent: false, clearNormalized: true, clearThumbnail: true);
             ApplyFrameArtifacts(project, staged, (links, id) => links with { Normalized = id });
             ResetLoopSelection(project);
@@ -414,10 +418,22 @@ public sealed class SpritePipelineService(
         }
     }
 
-    private static void RemoveTransientArtifacts(ProjectDocument project, params ArtifactKind[] kinds)
+    private void RemoveTransientArtifacts(
+        ProjectDocument project,
+        ProjectWorkspacePaths workspace,
+        params ArtifactKind[] kinds)
     {
         var set = kinds.ToHashSet();
-        project.Artifacts.RemoveAll(artifact => set.Contains(artifact.Kind));
+        var removable = project.Artifacts
+            .Where(artifact => set.Contains(artifact.Kind))
+            .ToArray();
+
+        _artifactCleanup.DeleteFiles(workspace, removable);
+
+        var removableIds = removable
+            .Select(artifact => artifact.Id)
+            .ToHashSet();
+        project.Artifacts.RemoveAll(artifact => removableIds.Contains(artifact.Id));
     }
 
     private static void ResetLoopSelection(ProjectDocument project) =>
