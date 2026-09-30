@@ -13,7 +13,18 @@ internal sealed partial class DesktopWorkflowController
         var index = CurrentProject.Frames.FindIndex(frame => frame.Id == selected.FrameId);
         if (index < 0) return;
         var frame = CurrentProject.Frames[index];
+        if (frame.Enabled &&
+            CurrentProject.Frames.Count(candidate => candidate.Enabled) <= 1)
+        {
+            ShowError(new InvalidOperationException("At least one frame must remain enabled."));
+            return;
+        }
+
+        var targetDuration = _services.FrameTiming.GetEnabledTotalDurationMs(CurrentProject);
         CurrentProject.Frames[index] = frame with { Enabled = !frame.Enabled };
+        _services.FrameTiming.PreserveEnabledTotalDuration(
+            CurrentProject,
+            targetDuration);
         InvalidateLoopAfterFrameEdit();
         await SaveAsync();
         RefreshViewModel();
@@ -31,8 +42,12 @@ internal sealed partial class DesktopWorkflowController
         var position = ordered.FindIndex(frame => frame.Id == selected.FrameId);
         if (position < 0) return;
         var original = ordered[position];
+        var targetDuration = _services.FrameTiming.GetEnabledTotalDurationMs(CurrentProject);
         ordered.Insert(position + 1, original with { Id = Guid.NewGuid() });
         ReassignOrders(ordered);
+        _services.FrameTiming.PreserveEnabledTotalDuration(
+            CurrentProject,
+            targetDuration);
         InvalidateLoopAfterFrameEdit();
         await SaveAsync();
         RefreshViewModel(original.Id, position + 1);
@@ -44,8 +59,22 @@ internal sealed partial class DesktopWorkflowController
     {
         var selected = _viewModel.SelectedFrame;
         if (selected is null || CurrentProject.Frames.Count <= 1) return;
+
+        var record = CurrentProject.Frames.FirstOrDefault(frame => frame.Id == selected.FrameId);
+        if (record is null) return;
+        if (record.Enabled &&
+            CurrentProject.Frames.Count(frame => frame.Enabled) <= 1)
+        {
+            ShowError(new InvalidOperationException("At least one frame must remain enabled."));
+            return;
+        }
+
+        var targetDuration = _services.FrameTiming.GetEnabledTotalDurationMs(CurrentProject);
         CurrentProject.Frames.RemoveAll(frame => frame.Id == selected.FrameId);
         ReassignOrders(CurrentProject.Frames.OrderBy(frame => frame.Order).ToList());
+        _services.FrameTiming.PreserveEnabledTotalDuration(
+            CurrentProject,
+            targetDuration);
         InvalidateLoopAfterFrameEdit();
         await SaveAsync();
         RefreshViewModel();
