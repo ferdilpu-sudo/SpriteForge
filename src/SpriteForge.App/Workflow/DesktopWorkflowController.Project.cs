@@ -5,13 +5,13 @@ namespace SpriteForge.App.Workflow;
 
 internal sealed partial class DesktopWorkflowController
 {
-    public Task InitializeAsync()
+    public async Task InitializeAsync()
     {
-        if (_project is not null) return Task.CompletedTask;
-        return CreateNewProjectAsync();
+        if (_project is not null) return;
+        await CreateNewProjectAsync().ConfigureAwait(true);
     }
 
-    public Task CreateNewProjectAsync()
+    public async Task CreateNewProjectAsync()
     {
         var project = _services.Projects.Create("Untitled Sprite");
         var baseDirectory = Path.Combine(
@@ -20,26 +20,15 @@ internal sealed partial class DesktopWorkflowController
             "Projects");
         var root = Path.Combine(baseDirectory, project.ProjectId.ToString("N"));
         var workspace = new ProjectWorkspacePaths(root);
+        _services.Workspace.EnsureCreated(workspace);
 
         _project = project;
         _workspace = workspace;
-        _projectFile = null;
+        _projectFile = Path.Combine(root, "project.spriteforge.json");
         _viewModel.ExportDestination = workspace.Exports;
+        await SaveAsync().ConfigureAwait(true);
         RefreshViewModel();
         _viewModel.JobStatus.Message = "New project ready";
-        return Task.CompletedTask;
-    }
-
-    public string? WorkspaceDiagnosticPath
-    {
-        get
-        {
-            if (_workspace is null) return null;
-            if (_projectFile is not null) return _workspace.RootPath;
-
-            return Path.GetDirectoryName(Path.GetFullPath(_workspace.RootPath))
-                ?? _workspace.RootPath;
-        }
     }
 
     public async Task OpenProjectAsync()
@@ -92,16 +81,8 @@ internal sealed partial class DesktopWorkflowController
 
     public async Task SaveAsync()
     {
-        if (_project is null || _workspace is null) return;
-
-        _services.Workspace.EnsureCreated(_workspace);
-        _projectFile ??= Path.Combine(
-            _workspace.RootPath,
-            "project.spriteforge.json");
-
-        await _services.Projects.SaveAsync(
-            _projectFile,
-            _project).ConfigureAwait(true);
+        if (_project is null || _projectFile is null) return;
+        await _services.Projects.SaveAsync(_projectFile, _project).ConfigureAwait(true);
         _viewModel.ProjectPath = _projectFile;
     }
 
